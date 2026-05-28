@@ -1,0 +1,14 @@
+services:
+  database:
+    image: postgres:18
+    container_name: aicard_db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: aicard
+    ports:
+      - "5444:5432"
+    volumes:
+      - db_data:/var/lib/postgresql
+volumes:
+  db_data:

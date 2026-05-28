@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String         @id @default(cuid())
+  email     String         @unique
+  name      String?
+  image     String?
+  password  String?
+  createdAt DateTime       @default(now())
+  audits    AuditSession[]
+}
+
+model AuditSession {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inputText   String       @db.Text
+  trustScore  Int?
+  auditCode   String       @unique @default(cuid())
+  verifyUrl   String?
+  completedAt DateTime?
+  createdAt   DateTime     @default(now())
+  stepResults StepResult[]
+}
+
+model StepResult {
+  id             String       @id @default(cuid())
+  auditSessionId String
+  auditSession   AuditSession @relation(fields: [auditSessionId], references: [id], onDelete: Cascade)
+  stepNumber     Int
+  data           Json
+  createdAt      DateTime     @default(now())
+
+  @@unique([auditSessionId, stepNumber])
+}
