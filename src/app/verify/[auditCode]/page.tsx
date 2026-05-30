@@ -68,24 +68,43 @@ function StepDetail({ step }: { step: StepResult }) {
   switch (step.stepNumber) {
     case 1: {
       const sources = (d.sources as Array<Record<string, unknown>>) ?? [];
+      const overview = d.referenceOverview as Record<string, unknown> | undefined;
       content = (
         <Animated className="space-y-2">
           <p className="text-white/60 text-xs">
             {d.citationsFound as number} trích dẫn phát hiện
           </p>
+          {overview?.summary && (
+            <div className="rounded-lg bg-blue-900/30 border border-blue-500/30 px-3 py-2 text-sm">
+              <div className="flex items-center justify-between gap-3 mb-1">
+                <span className="text-blue-200 font-semibold">Reference rubric</span>
+                <span className="text-blue-100 font-mono text-xs">
+                  {overview.reliabilityGrade as string} · {overview.reliabilityScore as number}/100
+                </span>
+              </div>
+              <p className="text-white/70 text-xs">{overview.summary as string}</p>
+            </div>
+          )}
           {sources.map((s, i) => (
             <div
               key={i}
-              className={`flex items-center justify-between py-1.5 px-3 rounded-lg text-sm ${
+              className={`py-2 px-3 rounded-lg text-sm ${
                 s.color === "green"
                   ? "bg-emerald-900/40 text-emerald-300"
                   : "bg-yellow-900/40 text-yellow-300"
               }`}
             >
-              <span className="truncate max-w-[70%]">{s.name as string}</span>
-              <span className="font-mono font-bold text-xs ml-2">
-                {s.matchScore as number}%
-              </span>
+              <div className="flex items-center justify-between gap-2">
+                <span className="truncate font-medium">{s.name as string}</span>
+                <span className="font-mono font-bold text-xs ml-2">
+                  {(s.reliabilityGrade as string | undefined) ?? "N/A"} · {(s.reliabilityScore as number | undefined) ?? (s.matchScore as number)}%
+                </span>
+              </div>
+              {s.reason && (
+                <p className="text-white/60 text-xs mt-1">
+                  Tier {(s.tier as string | undefined) ?? "?"}: {s.reason as string}
+                </p>
+              )}
             </div>
           ))}
         </Animated>

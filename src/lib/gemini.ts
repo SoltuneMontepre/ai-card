@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { acquireGeminiSlot } from "./gemini-rate-limit";
-import { applySkill } from "./skills";
+import { applySkill, loadSkillReference } from "./skills";
 
 // ── Key Pool ──────────────────────────────────────────────────────────────────
 
@@ -61,11 +61,21 @@ export interface Source {
   status: "active" | "broken";
   matchScore: number;
   color: "green" | "yellow";
+  tier: "S" | "A" | "B" | "C" | "D";
+  reliabilityScore: number;
+  reliabilityGrade: "A+" | "A" | "B" | "C" | "D";
+  reason: string;
 }
 
 export interface Step1Result {
   citationsFound: number;
   sources: Source[];
+  referenceOverview: {
+    reliabilityScore: number;
+    reliabilityGrade: "A+" | "A" | "B" | "C" | "D";
+    confidence: "High" | "Medium" | "Low";
+    summary: string;
+  };
 }
 
 export interface Step2Result {
@@ -119,8 +129,18 @@ function formatPreviousContext(ctx: StepContext, currentStep: number): string {
 
   if (currentStep > 1 && ctx.step1) {
     const broken = ctx.step1.sources.filter((s) => s.status === "broken");
+    const weak = ctx.step1.sources.filter((s) => s.reliabilityScore < 70);
     lines.push("**Step 1 — Source Detection:**");
     lines.push(`- Citations found: ${ctx.step1.citationsFound}`);
+    lines.push(
+      `- Reference grade: ${ctx.step1.referenceOverview?.reliabilityGrade ?? "N/A"} ` +
+        `(${ctx.step1.referenceOverview?.reliabilityScore ?? 0}/100)`,
+    );
+    if (weak.length > 0) {
+      lines.push(
+        `- Weak references: ${weak.map((s) => `${s.name} (${s.tier}, ${s.reliabilityScore})`).join(", ")}`,
+      );
+    }
     lines.push(
       `- Suspicious sources (broken): ${broken.length}` +
         (broken.length > 0
@@ -170,7 +190,10 @@ export async function analyzeStep1(
   rateLimitKey: string,
 ): Promise<Step1Result> {
   return generate<Step1Result>(
-    applySkill("step1-source-detection.md", { text }),
+    applySkill("step1-source-detection.md", {
+      text,
+      reference_rubric: loadSkillReference("AI_ReferenceRubric.md"),
+    }),
     rateLimitKey,
   );
 }

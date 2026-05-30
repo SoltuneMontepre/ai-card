@@ -48,6 +48,20 @@ export function loadSkill(filename: string): string {
   return body;
 }
 
+/** Loads a support document that is embedded into another skill prompt. */
+export function loadSkillReference(filename: string): string {
+  const filepath = path.join(SKILLS_DIR, filename);
+
+  if (!fs.existsSync(filepath)) {
+    throw new Error(`Skill reference file not found: skills/${filename}`);
+  }
+
+  return fs
+    .readFileSync(filepath, "utf-8")
+    .replace(/^---[\s\S]*?---\s*\n/, "")
+    .trim();
+}
+
 /**
  * Loads a skill file and replaces all `{{variable}}` placeholders with
  * the provided values. Always at minimum supply `{ text: "..." }`.

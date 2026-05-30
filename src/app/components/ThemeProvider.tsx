@@ -7,6 +7,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { THEME_STORAGE_KEY, type Theme } from "@/lib/theme";
 
@@ -34,15 +35,18 @@ function readStoredTheme(): Theme {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("light");
-  const [mounted, setMounted] = useState(false);
+  const [theme, setThemeState] = useState<Theme>(() =>
+    typeof window === "undefined" ? "light" : readStoredTheme(),
+  );
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   useEffect(() => {
-    const initial = readStoredTheme();
-    setThemeState(initial);
-    applyTheme(initial);
-    setMounted(true);
-  }, []);
+    applyTheme(theme);
+  }, [theme]);
 
   const setTheme = useCallback((next: Theme) => {
     setThemeState(next);
