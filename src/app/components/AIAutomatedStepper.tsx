@@ -158,7 +158,7 @@ function StepHeader({
               Hoàn thành bước {index} để mở khóa
             </span>
           ) : subtitle ? (
-            <span className="text-xs text-slate-500 mt-0.5">{subtitle}</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{subtitle}</span>
           ) : null}
         </div>
       </div>
@@ -305,8 +305,8 @@ export default function AIAutomatedStepper({
                   key={idx}
                   className={`p-3.5 rounded-xl border-2 transition-all ${
                     source.color === 'green'
-                      ? 'bg-emerald-50 border-emerald-200'
-                      : 'bg-yellow-50 border-yellow-200'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800'
+                      : 'bg-yellow-50 dark:bg-yellow-950/50 border-yellow-200 dark:border-yellow-800'
                   }`}
                 >
                   <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm mb-1">
@@ -327,7 +327,7 @@ export default function AIAutomatedStepper({
                       )}
                       {source.status === 'active' ? 'URL Active' : 'Broken Link'}
                     </span>
-                    <span className="text-slate-600">
+                    <span className="text-slate-600 dark:text-slate-400">
                       Match: <strong>{source.matchScore}%</strong>
                     </span>
                   </div>
@@ -368,25 +368,25 @@ export default function AIAutomatedStepper({
           onToggle={() => onToggleStep(1)}
         />
         <StepAccordion isOpen={expandedStep === 1} isPending={stepPending[1]}>
-          <div className="pt-4 border-t border-gray-100 animate-in fade-in duration-200">
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-xl border border-blue-200 mb-3">
+          <div className="pt-4 border-t border-gray-100 dark:border-slate-800 animate-in fade-in duration-200">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 p-5 rounded-xl border border-blue-200 dark:border-blue-800 mb-3">
               <div className="text-center mb-3">
-                <div className="text-4xl font-bold text-blue-600">
+                <div className="text-4xl font-bold text-blue-600 dark:text-blue-400">
                   {aiAnalysis.step2.logicScore}%
                 </div>
-                <div className="text-xs text-slate-500 mt-0.5">
+                <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Logical Health Score
                 </div>
               </div>
-              <div className="w-full bg-blue-100 rounded-full h-2">
+              <div className="w-full bg-blue-100 dark:bg-blue-900/60 rounded-full h-2">
                 <div
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-700"
+                  className="bg-blue-500 dark:bg-blue-400 h-2 rounded-full transition-all duration-700"
                   style={{ width: `${aiAnalysis.step2.logicScore}%` }}
                 />
               </div>
             </div>
-            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 mb-3">
-              <p className="text-sm text-slate-600">{aiAnalysis.step2.summary}</p>
+            <div className="bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 mb-3">
+              <p className="text-sm text-slate-600 dark:text-slate-300">{aiAnalysis.step2.summary}</p>
             </div>
             <StepActions
               stepIndex={1}
@@ -417,8 +417,8 @@ export default function AIAutomatedStepper({
           onToggle={() => onToggleStep(2)}
         />
         <StepAccordion isOpen={expandedStep === 2} isPending={stepPending[2]}>
-          <div className="pt-4 border-t border-gray-100 animate-in fade-in duration-200">
-            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-3.5 rounded-xl mb-3">
+          <div className="pt-4 border-t border-gray-100 dark:border-slate-800 animate-in fade-in duration-200">
+            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-700 dark:to-indigo-800 text-white p-3.5 rounded-xl mb-3">
               <p className="font-semibold text-sm flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
                 Đối chiếu dữ liệu với Google Scholar & Wikipedia
@@ -430,28 +430,28 @@ export default function AIAutomatedStepper({
                   key={idx}
                   className={`p-4 rounded-xl border-2 ${
                     ev.color === 'green'
-                      ? 'bg-emerald-50 border-emerald-300'
-                      : 'bg-yellow-50 border-yellow-300'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-800'
+                      : 'bg-yellow-50 dark:bg-yellow-950/50 border-yellow-300 dark:border-yellow-800'
                   }`}
                 >
-                  <p className="text-xs text-slate-500 mb-1">Dữ kiện:</p>
-                  <p className="font-medium text-slate-800 text-sm italic mb-2">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Dữ kiện:</p>
+                  <p className="font-medium text-slate-800 dark:text-slate-100 text-sm italic mb-2">
                     &ldquo;{ev.text}&rdquo;
                   </p>
-                  <p className="text-sm text-slate-600 mb-2">{ev.result}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 mb-2">{ev.result}</p>
                   <div className="flex items-center gap-2">
                     {ev.status === 'verified' ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                     ) : (
-                      <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                      <AlertTriangle className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
                     )}
-                    <span className="text-sm font-semibold text-slate-700">
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                       Match:{' '}
                       <span
                         className={
                           ev.color === 'green'
-                            ? 'text-emerald-600'
-                            : 'text-yellow-600'
+                            ? 'text-emerald-600 dark:text-emerald-400'
+                            : 'text-yellow-600 dark:text-yellow-400'
                         }
                       >
                         {ev.matchRate}%
@@ -463,10 +463,10 @@ export default function AIAutomatedStepper({
             </Animated>
 
             {aiAnalysis.step3.issueDetected && (
-              <div className="bg-orange-50 border-2 border-orange-300 rounded-xl p-4 mb-3">
+              <div className="bg-orange-50 dark:bg-orange-950/40 border-2 border-orange-300 dark:border-orange-800 rounded-xl p-4 mb-3">
                 <div className="flex items-start gap-2 mb-3">
-                  <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
-                  <p className="font-semibold text-orange-900 text-sm">
+                  <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
+                  <p className="font-semibold text-orange-900 dark:text-orange-200 text-sm">
                     AI phát hiện lỗi dữ liệu. Bạn muốn xử lý thế nào?
                   </p>
                 </div>
@@ -477,13 +477,13 @@ export default function AIAutomatedStepper({
                         value: 'accept',
                         label: 'Chấp nhận gợi ý sửa đổi của AI',
                         desc: 'Loại bỏ hoặc đánh dấu thông tin không xác thực',
-                        active: 'bg-emerald-50 border-emerald-500',
+                        active: 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-500 dark:border-emerald-600',
                       },
                       {
                         value: 'override',
                         label: 'Giữ nguyên và tự chịu trách nhiệm',
                         desc: 'Tôi xác nhận thông tin chính xác dù AI không tìm thấy',
-                        active: 'bg-red-50 border-red-500',
+                        active: 'bg-red-50 dark:bg-red-950/50 border-red-500 dark:border-red-600',
                       },
                     ] as const
                   ).map((opt) => (
@@ -492,7 +492,7 @@ export default function AIAutomatedStepper({
                       className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
                         step3UserChoice === opt.value
                           ? opt.active
-                          : 'bg-white border-orange-200 hover:border-orange-400'
+                          : 'bg-white dark:bg-slate-800 border-orange-200 dark:border-orange-800 hover:border-orange-400 dark:hover:border-orange-600'
                       }`}
                     >
                       <input
@@ -503,10 +503,10 @@ export default function AIAutomatedStepper({
                         className="mt-0.5"
                       />
                       <div>
-                        <p className="font-semibold text-slate-800 text-sm">
+                        <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
                           {opt.label}
                         </p>
-                        <p className="text-xs text-slate-500">{opt.desc}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{opt.desc}</p>
                       </div>
                     </label>
                   ))}
@@ -612,7 +612,7 @@ export default function AIAutomatedStepper({
           onToggle={() => onToggleStep(4)}
         />
         <StepAccordion isOpen={expandedStep === 4} isPending={stepPending[4]}>
-          <div className="pt-4 border-t border-gray-100 animate-in fade-in duration-200">
+          <div className="pt-4 border-t border-gray-100 dark:border-slate-800 animate-in fade-in duration-200">
             <div className="flex flex-col items-center mb-4">
               <div className="relative w-[200px] h-[200px]">
                 <PieChart width={200} height={200}>
@@ -641,10 +641,10 @@ export default function AIAutomatedStepper({
               <div
                 className={`px-3 py-1 rounded-full text-sm font-semibold mt-1 ${
                   hallucinationRisk < 30
-                    ? 'bg-emerald-100 text-emerald-800'
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
                     : hallucinationRisk < 60
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-red-100 text-red-800'
+                      ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300'
+                      : 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300'
                 }`}
               >
                 {hallucinationRisk < 30
@@ -655,14 +655,14 @@ export default function AIAutomatedStepper({
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-200 rounded-xl p-4 mb-3">
+            <div className="bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/40 dark:to-green-950/40 border-2 border-emerald-200 dark:border-emerald-800 rounded-xl p-4 mb-3">
               <div className="flex items-start gap-2">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-emerald-900 text-sm mb-1">
+                  <p className="font-semibold text-emerald-900 dark:text-emerald-200 text-sm mb-1">
                     Kết quả tổng thể
                   </p>
-                  <p className="text-sm text-emerald-800">
+                  <p className="text-sm text-emerald-800 dark:text-emerald-300">
                     Văn bản đạt tiêu chuẩn chân lý thực tiễn, sẵn sàng xuất thẻ
                     chứng nhận.
                   </p>
@@ -688,7 +688,7 @@ export default function AIAutomatedStepper({
         className={`w-full flex items-center justify-center gap-3 px-8 py-4 rounded-xl mt-2 font-semibold transition-all duration-200 ${
           allStepsCompleted
             ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-md hover:shadow-lg animate-pulse cursor-pointer'
-            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            : 'bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-slate-500 cursor-not-allowed'
         }`}
       >
         {!allStepsCompleted && <Lock className="w-5 h-5" />}
