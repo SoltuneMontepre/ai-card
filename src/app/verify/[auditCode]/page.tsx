@@ -69,20 +69,30 @@ function StepDetail({ step }: { step: StepResult }) {
     case 1: {
       const sources = (d.sources as Array<Record<string, unknown>>) ?? [];
       const overview = d.referenceOverview as Record<string, unknown> | undefined;
+      const overviewSummary =
+        typeof overview?.summary === "string" ? overview.summary : "";
+      const overviewGrade =
+        typeof overview?.reliabilityGrade === "string"
+          ? overview.reliabilityGrade
+          : "N/A";
+      const overviewScore =
+        typeof overview?.reliabilityScore === "number"
+          ? overview.reliabilityScore
+          : 0;
       content = (
         <Animated className="space-y-2">
           <p className="text-white/60 text-xs">
             {d.citationsFound as number} trích dẫn phát hiện
           </p>
-          {overview?.summary && (
+          {overviewSummary && (
             <div className="rounded-lg bg-blue-900/30 border border-blue-500/30 px-3 py-2 text-sm">
               <div className="flex items-center justify-between gap-3 mb-1">
                 <span className="text-blue-200 font-semibold">Reference rubric</span>
                 <span className="text-blue-100 font-mono text-xs">
-                  {overview.reliabilityGrade as string} · {overview.reliabilityScore as number}/100
+                  {overviewGrade} · {overviewScore}/100
                 </span>
               </div>
-              <p className="text-white/70 text-xs">{overview.summary as string}</p>
+              <p className="text-white/70 text-xs">{overviewSummary}</p>
             </div>
           )}
           {sources.map((s, i) => (
@@ -100,9 +110,9 @@ function StepDetail({ step }: { step: StepResult }) {
                   {(s.reliabilityGrade as string | undefined) ?? "N/A"} · {(s.reliabilityScore as number | undefined) ?? (s.matchScore as number)}%
                 </span>
               </div>
-              {s.reason && (
+              {typeof s.reason === "string" && s.reason.length > 0 && (
                 <p className="text-white/60 text-xs mt-1">
-                  Tier {(s.tier as string | undefined) ?? "?"}: {s.reason as string}
+                  Tier {(s.tier as string | undefined) ?? "?"}: {s.reason}
                 </p>
               )}
             </div>
