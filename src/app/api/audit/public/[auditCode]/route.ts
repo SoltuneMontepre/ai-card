@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { getPublicAudit } from "@/lib/audit-public";
 
 export async function GET(
   _: Request,
@@ -6,20 +6,7 @@ export async function GET(
 ) {
   const { auditCode } = await params;
 
-  const audit = await prisma.auditSession.findUnique({
-    where: { auditCode },
-    select: {
-      auditCode: true,
-      verifyUrl: true,
-      trustScore: true,
-      completedAt: true,
-      createdAt: true,
-      stepResults: {
-        orderBy: { stepNumber: "asc" },
-        select: { stepNumber: true, data: true },
-      },
-    },
-  });
+  const audit = await getPublicAudit(auditCode);
 
   if (!audit) {
     return Response.json({ error: "Audit not found" }, { status: 404 });

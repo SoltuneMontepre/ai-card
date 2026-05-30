@@ -1,37 +1,18 @@
 import { notFound } from "next/navigation";
 import { Shield, Award, CheckCircle2, AlertTriangle, Check, ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
+import { getPublicAudit } from "@/lib/audit-public";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-interface StepResult {
-  stepNumber: number;
-  data: Record<string, unknown>;
-}
+type StepResult = NonNullable<
+  Awaited<ReturnType<typeof getPublicAudit>>
+>["stepResults"][number];
 
-interface AuditData {
-  auditCode: string;
-  verifyUrl: string | null;
-  trustScore: number | null;
-  completedAt: string | null;
-  createdAt: string;
-  stepResults: StepResult[];
-}
-
-// ── Data fetching ─────────────────────────────────────────────────────────────
-
-async function getAudit(auditCode: string): Promise<AuditData | null> {
-  // Use internal base so this works in both edge and Node runtimes
-  const base =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    process.env.NEXTAUTH_URL ??
-    "http://localhost:3000";
-
-  const res = await fetch(`${base}/api/audit/public/${auditCode}`, {
-    cache: "no-store",
-  });
-  if (!res.ok) return null;
-  return res.json();
+function asRecord(value: StepResult["data"]): Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
 }
 
 // ── Metadata ─────────────────────────────────────────────────────────────────
@@ -42,7 +23,7 @@ export async function generateMetadata({
   params: Promise<{ auditCode: string }>;
 }): Promise<Metadata> {
   const { auditCode } = await params;
-  const audit = await getAudit(auditCode);
+  const audit = await getPublicAudit(auditCode);
   const score = audit?.trustScore ?? "?";
   return {
     title: `Xác minh #${auditCode.slice(-8).toUpperCase()} · ${score}% — AI Verification Card`,
@@ -68,7 +49,7 @@ function trustBand(score: number | null) {
 }
 
 function isWarningStep(step: StepResult): boolean {
-  const d = step.data;
+  const d = asRecord(step.data);
   return (
     (step.stepNumber === 3 && !!d.issueDetected) ||
     (step.stepNumber === 5 && Number(d.hallucinationRisk ?? 0) > 30)
@@ -77,7 +58,7 @@ function isWarningStep(step: StepResult): boolean {
 
 // Detailed human-readable content per step
 function StepDetail({ step }: { step: StepResult }) {
-  const d = step.data;
+  const d = asRecord(step.data);
   const warning = isWarningStep(step);
 
   let content: React.ReactNode;
@@ -142,7 +123,7 @@ function StepDetail({ step }: { step: StepResult }) {
             >
               <p className="text-white/60 text-xs mb-1">Dữ kiện:</p>
               <p className="text-white/90 italic mb-1.5">
-                &ldquo;{(ev.text as string).slice(0, 100)}&hellip;&rdquo;
+                &ldquo;{String(ev.text ?? "").slice(0, 100)}&hellip;&rdquo;
               </p>
               <p
                 className={
@@ -241,7 +222,7 @@ export default async function VerifyPage({
   params: Promise<{ auditCode: string }>;
 }) {
   const { auditCode } = await params;
-  const audit = await getAudit(auditCode);
+  const audit = await getPublicAudit(auditCode);
   if (!audit) notFound();
 
   const shortCode = audit.auditCode.slice(-8).toUpperCase();
