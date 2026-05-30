@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { Shield, Award, CheckCircle2, AlertTriangle, Check, ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 import { getPublicAudit } from "@/lib/audit-public";
+import Animated from "@/app/components/Animated";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -67,7 +68,7 @@ function StepDetail({ step }: { step: StepResult }) {
     case 1: {
       const sources = (d.sources as Array<Record<string, unknown>>) ?? [];
       content = (
-        <div className="space-y-2">
+        <Animated className="space-y-2">
           <p className="text-white/60 text-xs">
             {d.citationsFound as number} trích dẫn phát hiện
           </p>
@@ -86,7 +87,7 @@ function StepDetail({ step }: { step: StepResult }) {
               </span>
             </div>
           ))}
-        </div>
+        </Animated>
       );
       break;
     }
@@ -111,7 +112,7 @@ function StepDetail({ step }: { step: StepResult }) {
     case 3: {
       const evidence = (d.evidence as Array<Record<string, unknown>>) ?? [];
       content = (
-        <div className="space-y-2">
+        <Animated className="space-y-2">
           {evidence.map((ev, i) => (
             <div
               key={i}
@@ -137,7 +138,7 @@ function StepDetail({ step }: { step: StepResult }) {
               </p>
             </div>
           ))}
-        </div>
+        </Animated>
       );
       break;
     }
@@ -297,7 +298,7 @@ export default async function VerifyPage({
 
             {/* Quick step overview */}
             {audit.stepResults.length > 0 && (
-              <div className="flex gap-3 mb-6">
+              <Animated className="flex gap-3 mb-6">
                 {audit.stepResults.map((step) => (
                   <div
                     key={step.stepNumber}
@@ -315,7 +316,7 @@ export default async function VerifyPage({
                     )}
                   </div>
                 ))}
-              </div>
+              </Animated>
             )}
 
             {/* Divider */}
@@ -350,11 +351,11 @@ export default async function VerifyPage({
             <h2 className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-3 px-1">
               Chi tiết kiểm chứng
             </h2>
-            <div className="space-y-3">
+            <Animated className="space-y-3">
               {audit.stepResults.map((step) => (
                 <StepDetail key={step.stepNumber} step={step} />
               ))}
-            </div>
+            </Animated>
           </div>
         )}
 

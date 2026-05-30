@@ -20,6 +20,7 @@ import PremiumLandingPage from "./PremiumLandingPage";
 import InteractiveHeader from "./InteractiveHeader";
 import AuthModal from "./AuthModal";
 import Toast from "./Toast";
+import Animated, { useAnimatedRef } from "./Animated";
 import type {
   Step1Result,
   Step2Result,
@@ -74,6 +75,7 @@ export default function AppShell() {
   const [pendingNavigation, setPendingNavigation] = useState(false);
   const [auditCode, setAuditCode] = useState<string | null>(null);
   const [verifyUrl, setVerifyUrl] = useState<string | null>(null);
+  const [screenRef] = useAnimatedRef();
 
   // Store the text being verified so it doesn't change mid-session
   const verifiedText = useRef("");
@@ -247,283 +249,282 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
 
   // ── Screens ────────────────────────────────────────────────────────────────
 
-  if (currentScreen === "landing") {
-    return (
-      <>
-        <PremiumLandingPage
-          inputValue={inputValue}
-          setInputValue={setInputValue}
-          selectedTab={selectedTab}
-          setSelectedTab={setSelectedTab}
-          uploadedFile={uploadedFile}
-          onFileSelect={setUploadedFile}
-          onFileRemove={() => setUploadedFile(null)}
-          isLoading={isLoading}
-          wordCount={wordCount}
-          loadSampleText={loadSampleText}
-          handleStartVerification={handleStartVerification}
-          onLogoClick={resetAndGoHome}
-          onLoginClick={() => setIsLoginModalOpen(true)}
-        />
-        <AuthModal
-          isOpen={isLoginModalOpen}
-          onClose={() => {
-            setIsLoginModalOpen(false);
-            setPendingNavigation(false);
-          }}
-          onAuthSuccess={handleLoginSuccess}
-        />
-        <Toast
-          message="Xác thực thành công. Chào mừng bạn!"
-          isVisible={showToast}
-          onClose={() => setShowToast(false)}
-        />
-      </>
-    );
-  }
-
-  if (currentScreen === "workspace") {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <InteractiveHeader
-          onLogoClick={resetAndGoHome}
-          onLoginClick={() => setIsLoginModalOpen(true)}
-        />
-
-        <div className="bg-white border-b border-gray-200 shadow-sm">
-          <div className="w-full max-w-360 mx-auto px-8 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex-1 max-w-2xl mx-auto">
-                <div className="mb-2 text-sm text-slate-600 text-center font-semibold">
-                  Hoàn thành: Bước {completedCount}/5
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
-                  <div
-                    className="bg-linear-to-r from-emerald-500 to-emerald-600 h-3 rounded-full transition-all duration-500 shadow-lg shadow-emerald-500/30"
-                    style={{ width: `${progressPercentage}%` }}
-                  />
-                </div>
-              </div>
-              <button
-                onClick={resetAndGoHome}
-                className="px-4 py-2 border-2 border-red-500 text-red-500 rounded-lg hover:bg-red-50 transition-all font-semibold"
-              >
-                Hủy phiên
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="w-full max-w-360 mx-auto px-8 py-8">
-          <div className="grid grid-cols-5 gap-8">
-            {/* Text Panel */}
-            <div className="col-span-2">
-              <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-                <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-slate-600" />
-                    <h2 className="text-lg font-semibold text-slate-800">
-                      Đoạn văn bản cần kiểm tra
-                    </h2>
-                  </div>
-                  <span className="px-3 py-1 bg-slate-100 text-slate-600 text-sm rounded-full">
-                    {wordCount} từ
-                  </span>
-                </div>
-                <div className="text-slate-700 leading-relaxed text-sm whitespace-pre-wrap max-h-[60vh] overflow-y-auto">
-                  {verifiedText.current}
-                </div>
-              </div>
-            </div>
-
-            {/* Stepper */}
-            <AIAutomatedStepper
-              completedSteps={completedSteps}
-              expandedStep={expandedStep}
-              aiAnalysis={aiAnalysis}
-              stepPending={stepPending}
-              step3UserChoice={step3UserChoice}
-              onToggleStep={toggleStep}
-              onApproveStep={approveStep}
-              onSetStep3Choice={setStep3UserChoice}
-              onGoBack={goBackToPreviousStep}
-              allStepsCompleted={allStepsCompleted}
-              onGoToResult={handleGoToResult}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Result screen
   return (
-    <div className="min-h-screen bg-gray-50">
-      <InteractiveHeader
-        onLogoClick={resetAndGoHome}
-        onLoginClick={() => setIsLoginModalOpen(true)}
-      />
+    <>
+      <div ref={screenRef}>
+        {currentScreen === "landing" && (
+          <PremiumLandingPage
+            inputValue={inputValue}
+            setInputValue={setInputValue}
+            selectedTab={selectedTab}
+            setSelectedTab={setSelectedTab}
+            uploadedFile={uploadedFile}
+            onFileSelect={setUploadedFile}
+            onFileRemove={() => setUploadedFile(null)}
+            isLoading={isLoading}
+            wordCount={wordCount}
+            loadSampleText={loadSampleText}
+            handleStartVerification={handleStartVerification}
+            onLogoClick={resetAndGoHome}
+            onLoginClick={() => setIsLoginModalOpen(true)}
+          />
+        )}
 
-      <div className="bg-linear-to-r from-emerald-50 to-green-50 border-b border-emerald-200 shadow-sm">
-        <div className="w-full max-w-360 mx-auto px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 max-w-2xl mx-auto">
-              <div className="mb-2 text-sm text-emerald-700 font-bold text-center flex items-center justify-center gap-2">
-                <CheckCircle2 className="w-5 h-5" />
-                <span>Hoàn thành: Bước 5/5</span>
+        {currentScreen === "workspace" && (
+          <div className="min-h-screen bg-gray-50">
+            <InteractiveHeader
+              onLogoClick={resetAndGoHome}
+              onLoginClick={() => setIsLoginModalOpen(true)}
+            />
+
+            <div className="bg-white border-b border-gray-200 shadow-sm">
+              <div className="w-full max-w-360 mx-auto px-8 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 max-w-2xl mx-auto">
+                    <div className="mb-2 text-sm text-slate-600 text-center font-semibold">
+                      Hoàn thành: Bước {completedCount}/5
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
+                      <div
+                        className="bg-linear-to-r from-emerald-500 to-emerald-600 h-3 rounded-full transition-all duration-500 shadow-lg shadow-emerald-500/30"
+                        style={{ width: `${progressPercentage}%` }}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={resetAndGoHome}
+                    className="px-4 py-2 border-2 border-red-500 text-red-500 rounded-lg hover:bg-red-50 transition-all font-semibold"
+                  >
+                    Hủy phiên
+                  </button>
+                </div>
               </div>
-              <div className="w-full bg-emerald-200 rounded-full h-3 shadow-inner">
-                <div
-                  className="bg-linear-to-r from-emerald-500 to-emerald-600 h-3 rounded-full shadow-lg shadow-emerald-500/50 animate-pulse"
-                  style={{ width: "100%" }}
+            </div>
+
+            <div className="w-full max-w-360 mx-auto px-8 py-8">
+              <div className="grid grid-cols-5 gap-8">
+                <div className="col-span-2">
+                  <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+                    <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-slate-600" />
+                        <h2 className="text-lg font-semibold text-slate-800">
+                          Đoạn văn bản cần kiểm tra
+                        </h2>
+                      </div>
+                      <span className="px-3 py-1 bg-slate-100 text-slate-600 text-sm rounded-full">
+                        {wordCount} từ
+                      </span>
+                    </div>
+                    <div className="text-slate-700 leading-relaxed text-sm whitespace-pre-wrap max-h-[60vh] overflow-y-auto">
+                      {verifiedText.current}
+                    </div>
+                  </div>
+                </div>
+
+                <AIAutomatedStepper
+                  completedSteps={completedSteps}
+                  expandedStep={expandedStep}
+                  aiAnalysis={aiAnalysis}
+                  stepPending={stepPending}
+                  step3UserChoice={step3UserChoice}
+                  onToggleStep={toggleStep}
+                  onApproveStep={approveStep}
+                  onSetStep3Choice={setStep3UserChoice}
+                  onGoBack={goBackToPreviousStep}
+                  allStepsCompleted={allStepsCompleted}
+                  onGoToResult={handleGoToResult}
                 />
               </div>
             </div>
-            <button
-              onClick={resetAndGoHome}
-              className="flex items-center gap-2 px-5 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all font-semibold shadow-md"
-            >
-              <Home className="w-4 h-4" />
-              <span>Về trang chủ</span>
-            </button>
           </div>
-        </div>
-      </div>
+        )}
 
-      <div className="w-full max-w-360 mx-auto px-8 py-12">
-        <div className="grid grid-cols-2 gap-12">
-          <div className="space-y-8">
-            {/* Trust Score Gauge */}
-            <div className="bg-white rounded-2xl shadow-lg p-8">
-              <div className="flex flex-col items-center">
-                <div className="relative">
-                  <PieChart width={280} height={280}>
-                    <Pie
-                      data={chartData}
-                      cx={140}
-                      cy={140}
-                      startAngle={90}
-                      endAngle={-270}
-                      innerRadius={100}
-                      outerRadius={130}
-                      dataKey="value"
-                      stroke="none"
-                    >
-                      <Cell
-                        fill={
-                          trustScore >= 70
-                            ? "#10B981"
-                            : trustScore >= 40
-                              ? "#F59E0B"
-                              : "#EF4444"
-                        }
+        {currentScreen === "result" && (
+          <div className="min-h-screen bg-gray-50">
+            <InteractiveHeader
+              onLogoClick={resetAndGoHome}
+              onLoginClick={() => setIsLoginModalOpen(true)}
+            />
+
+            <div className="bg-linear-to-r from-emerald-50 to-green-50 border-b border-emerald-200 shadow-sm">
+              <div className="w-full max-w-360 mx-auto px-8 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 max-w-2xl mx-auto">
+                    <div className="mb-2 text-sm text-emerald-700 font-bold text-center flex items-center justify-center gap-2">
+                      <CheckCircle2 className="w-5 h-5" />
+                      <span>Hoàn thành: Bước 5/5</span>
+                    </div>
+                    <div className="w-full bg-emerald-200 rounded-full h-3 shadow-inner">
+                      <div
+                        className="bg-linear-to-r from-emerald-500 to-emerald-600 h-3 rounded-full shadow-lg shadow-emerald-500/50 animate-pulse"
+                        style={{ width: "100%" }}
                       />
-                      <Cell fill="#E5E7EB" />
-                    </Pie>
-                  </PieChart>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <div className="text-6xl font-bold text-emerald-600">
-                      {trustScore}%
-                    </div>
-                    <div className="text-sm text-slate-500 mt-1">
-                      Trust Score
                     </div>
                   </div>
+                  <button
+                    onClick={resetAndGoHome}
+                    className="flex items-center gap-2 px-5 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all font-semibold shadow-md"
+                  >
+                    <Home className="w-4 h-4" />
+                    <span>Về trang chủ</span>
+                  </button>
                 </div>
-                <h2 className="text-2xl font-semibold text-slate-800 mt-6 text-center">
-                  Nội dung an toàn để sử dụng học thuật
-                </h2>
               </div>
             </div>
 
-            {/* Checklist */}
-            <div className="bg-white rounded-2xl shadow-lg p-8">
-              <h3 className="text-lg font-semibold text-slate-800 mb-6">
-                Tóm tắt kiểm chứng
-              </h3>
-              <div className="space-y-4">
-                {[
-                  "Nguồn gốc hợp lệ",
-                  "Logic nhất quán",
-                  "Khớp với thực tiễn",
-                  "Dữ liệu cập nhật",
-                  "Không có ảo giác AI",
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shrink-0">
-                      <Check className="w-4 h-4 text-white" />
-                    </div>
-                    <span className="text-slate-700">
-                      {i + 1}. {item}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <button className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg mt-8">
-                <Download className="w-5 h-5" />
-                <span className="font-semibold">Tải Thẻ Chứng Nhận (PDF)</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Certificate Card */}
-          <div className="flex items-center justify-center">
-            <div className="w-full max-w-135">
-              <div className="relative bg-linear-to-br from-[#0F172A] to-[#1E293B] rounded-2xl shadow-2xl p-12 border-4 border-emerald-500 overflow-hidden">
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute top-0 left-0 w-32 h-32 border-l-2 border-t-2 border-emerald-400" />
-                  <div className="absolute bottom-0 right-0 w-32 h-32 border-r-2 border-b-2 border-emerald-400" />
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-emerald-400 rounded-full" />
-                </div>
-                <div className="relative z-10 flex flex-col items-center text-center">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/20 border border-emerald-400 rounded-full mb-8">
-                    <Award className="w-4 h-4 text-emerald-400" />
-                    <span className="text-emerald-400 font-semibold text-sm tracking-wider">
-                      VERIFIED CONTENT
-                    </span>
-                  </div>
-                  <div className="w-32 h-32 bg-linear-to-br from-emerald-400 to-yellow-500 rounded-full flex items-center justify-center mb-8 shadow-lg shadow-emerald-500/50">
-                    <Shield
-                      className="w-20 h-20 text-white"
-                      strokeWidth={2.5}
-                    />
-                  </div>
-                  <h2 className="text-2xl font-bold text-white mb-3">
-                    AI Verification Card
-                  </h2>
-                  <p className="text-emerald-400 text-lg mb-8 leading-relaxed">
-                    Đã kiểm chứng bởi Khung MLN111
-                    <br />
-                    <span className="text-white/80">Nhóm SPST086</span>
-                  </p>
-                  <div className="w-full h-px bg-linear-to-r from-transparent via-emerald-500 to-transparent mb-8" />
-                  <div className="flex items-center justify-between w-full text-sm">
-                    <div className="text-left">
-                      <div className="text-gray-400 mb-1">Audit ID</div>
-                      <div className="text-white font-mono font-semibold">
-                        #{auditCode?.slice(-6).toUpperCase() ?? "------"}
+            <div className="w-full max-w-360 mx-auto px-8 py-12">
+              <div className="grid grid-cols-2 gap-12">
+                <div className="space-y-8">
+                  <div className="bg-white rounded-2xl shadow-lg p-8">
+                    <div className="flex flex-col items-center">
+                      <div className="relative">
+                        <PieChart width={280} height={280}>
+                          <Pie
+                            data={chartData}
+                            cx={140}
+                            cy={140}
+                            startAngle={90}
+                            endAngle={-270}
+                            innerRadius={100}
+                            outerRadius={130}
+                            dataKey="value"
+                            stroke="none"
+                          >
+                            <Cell
+                              fill={
+                                trustScore >= 70
+                                  ? "#10B981"
+                                  : trustScore >= 40
+                                    ? "#F59E0B"
+                                    : "#EF4444"
+                              }
+                            />
+                            <Cell fill="#E5E7EB" />
+                          </Pie>
+                        </PieChart>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <div className="text-6xl font-bold text-emerald-600">
+                            {trustScore}%
+                          </div>
+                          <div className="text-sm text-slate-500 mt-1">
+                            Trust Score
+                          </div>
+                        </div>
                       </div>
+                      <h2 className="text-2xl font-semibold text-slate-800 mt-6 text-center">
+                        Nội dung an toàn để sử dụng học thuật
+                      </h2>
                     </div>
-                    <div className="text-center">
-                      <div className="text-gray-400 mb-1">Date</div>
-                      <div className="text-white font-semibold">{today}</div>
-                    </div>
-                    <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center p-1.5">
-                      <QRCode
-                        value={verifyUrl ?? `${window.location.origin}/verify/${auditCode ?? "pending"}`}
-                        size={52}
-                        fgColor="#0F172A"
-                        bgColor="#ffffff"
-                      />
+                  </div>
+
+                  <div className="bg-white rounded-2xl shadow-lg p-8">
+                    <h3 className="text-lg font-semibold text-slate-800 mb-6">
+                      Tóm tắt kiểm chứng
+                    </h3>
+                    <Animated className="space-y-4">
+                      {[
+                        "Nguồn gốc hợp lệ",
+                        "Logic nhất quán",
+                        "Khớp với thực tiễn",
+                        "Dữ liệu cập nhật",
+                        "Không có ảo giác AI",
+                      ].map((item, i) => (
+                        <div key={i} className="flex items-center gap-3">
+                          <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shrink-0">
+                            <Check className="w-4 h-4 text-white" />
+                          </div>
+                          <span className="text-slate-700">
+                            {i + 1}. {item}
+                          </span>
+                        </div>
+                      ))}
+                    </Animated>
+                    <button className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg mt-8">
+                      <Download className="w-5 h-5" />
+                      <span className="font-semibold">Tải Thẻ Chứng Nhận (PDF)</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-center">
+                  <div className="w-full max-w-135">
+                    <div className="relative bg-linear-to-br from-[#0F172A] to-[#1E293B] rounded-2xl shadow-2xl p-12 border-4 border-emerald-500 overflow-hidden">
+                      <div className="absolute inset-0 opacity-10">
+                        <div className="absolute top-0 left-0 w-32 h-32 border-l-2 border-t-2 border-emerald-400" />
+                        <div className="absolute bottom-0 right-0 w-32 h-32 border-r-2 border-b-2 border-emerald-400" />
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-emerald-400 rounded-full" />
+                      </div>
+                      <div className="relative z-10 flex flex-col items-center text-center">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/20 border border-emerald-400 rounded-full mb-8">
+                          <Award className="w-4 h-4 text-emerald-400" />
+                          <span className="text-emerald-400 font-semibold text-sm tracking-wider">
+                            VERIFIED CONTENT
+                          </span>
+                        </div>
+                        <div className="w-32 h-32 bg-linear-to-br from-emerald-400 to-yellow-500 rounded-full flex items-center justify-center mb-8 shadow-lg shadow-emerald-500/50">
+                          <Shield
+                            className="w-20 h-20 text-white"
+                            strokeWidth={2.5}
+                          />
+                        </div>
+                        <h2 className="text-2xl font-bold text-white mb-3">
+                          AI Verification Card
+                        </h2>
+                        <p className="text-emerald-400 text-lg mb-8 leading-relaxed">
+                          Đã kiểm chứng bởi Khung MLN111
+                          <br />
+                          <span className="text-white/80">Nhóm SPST086</span>
+                        </p>
+                        <div className="w-full h-px bg-linear-to-r from-transparent via-emerald-500 to-transparent mb-8" />
+                        <div className="flex items-center justify-between w-full text-sm">
+                          <div className="text-left">
+                            <div className="text-gray-400 mb-1">Audit ID</div>
+                            <div className="text-white font-mono font-semibold">
+                              #{auditCode?.slice(-6).toUpperCase() ?? "------"}
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-gray-400 mb-1">Date</div>
+                            <div className="text-white font-semibold">{today}</div>
+                          </div>
+                          <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center p-1.5">
+                            <QRCode
+                              value={verifyUrl ?? `${window.location.origin}/verify/${auditCode ?? "pending"}`}
+                              size={52}
+                              fgColor="#0F172A"
+                              bgColor="#ffffff"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="absolute inset-0 rounded-2xl shadow-[inset_0_0_60px_rgba(16,185,129,0.3)]" />
                     </div>
                   </div>
                 </div>
-                <div className="absolute inset-0 rounded-2xl shadow-[inset_0_0_60px_rgba(16,185,129,0.3)]" />
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
-    </div>
+
+      {currentScreen === "landing" && (
+        <>
+          <AuthModal
+            isOpen={isLoginModalOpen}
+            onClose={() => {
+              setIsLoginModalOpen(false);
+              setPendingNavigation(false);
+            }}
+            onAuthSuccess={handleLoginSuccess}
+          />
+          <Toast
+            message="Xác thực thành công. Chào mừng bạn!"
+            isVisible={showToast}
+            onClose={() => setShowToast(false)}
+          />
+        </>
+      )}
+    </>
   );
 }

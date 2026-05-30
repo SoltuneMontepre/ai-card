@@ -14,6 +14,7 @@ import {
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import axios, { AxiosError } from "axios";
+import Animated from "./Animated";
 
 function GoogleIcon() {
   return (
@@ -133,7 +134,7 @@ export default function AuthModal({
         </div>
 
         {/* Body */}
-        <div className="p-8 space-y-4">
+        <Animated className="p-8 space-y-4">
           {/* Google OAuth */}
           <button
             onClick={() => signIn("google", { callbackUrl: "/" })}
@@ -308,7 +309,7 @@ export default function AuthModal({
               )}
             </p>
           </div>
-        </div>
+        </Animated>
       </div>
     </div>
   );

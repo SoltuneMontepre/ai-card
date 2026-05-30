@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Shield, CheckCircle2, AlertTriangle, Clock, ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
+import Animated from "@/app/components/Animated";
 
 export const metadata: Metadata = {
   title: "Lịch sử kiểm chứng — AI Verification Card",
@@ -78,7 +79,7 @@ export default async function HistoryPage() {
             </p>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Animated className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {audits.map((audit) => {
               const shortCode = audit.auditCode.slice(-8).toUpperCase();
               const date = new Date(
@@ -122,7 +123,7 @@ export default async function HistoryPage() {
                   </div>
 
                   {/* Step chips */}
-                  <div className="flex gap-1.5 mb-4 flex-wrap">
+                  <Animated className="flex gap-1.5 mb-4 flex-wrap">
                     {audit.stepResults.map((step) => {
                       const warn =
                         (step.stepNumber === 3 &&
@@ -151,7 +152,7 @@ export default async function HistoryPage() {
                         </div>
                       );
                     })}
-                  </div>
+                  </Animated>
 
                   {/* CTA */}
                   <div className="flex items-center justify-end text-xs text-slate-400 group-hover:text-emerald-600 transition-colors font-medium">
@@ -161,7 +162,7 @@ export default async function HistoryPage() {
                 </Link>
               );
             })}
-          </div>
+          </Animated>
         )}
       </div>
     </div>

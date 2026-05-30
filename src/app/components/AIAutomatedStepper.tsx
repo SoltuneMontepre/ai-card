@@ -10,6 +10,7 @@ import type {
   Step1Result, Step2Result, Step3Result,
   Step4Result, Step5Result,
 } from '@/lib/gemini';
+import Animated from './Animated';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -259,7 +260,7 @@ export default function AIAutomatedStepper({
             : 'border-gray-200';
 
   return (
-    <div className="col-span-3 space-y-3">
+    <Animated className="col-span-3 space-y-3">
 
       {/* ── Step 1 ── */}
       <div className={`bg-white border-l-4 rounded-xl shadow-sm transition-all duration-200 ${borderFor(0)}`}>
@@ -284,7 +285,7 @@ export default function AIAutomatedStepper({
               <Database className="w-4 h-4 text-blue-500" />
               Kết quả phân tích AI
             </h4>
-            <div className="space-y-2.5 mb-4">
+            <Animated className="space-y-2.5 mb-4">
               {aiAnalysis.step1.sources.map((source, idx) => (
                 <div
                   key={idx}
@@ -323,7 +324,7 @@ export default function AIAutomatedStepper({
                   Không tìm thấy nguồn trích dẫn
                 </p>
               )}
-            </div>
+            </Animated>
             <StepActions
               stepIndex={0}
               isCompleted={completedSteps[0]}
@@ -409,7 +410,7 @@ export default function AIAutomatedStepper({
                 Đối chiếu dữ liệu với Google Scholar & Wikipedia
               </p>
             </div>
-            <div className="space-y-3 mb-3">
+            <Animated className="space-y-3 mb-3">
               {aiAnalysis.step3.evidence.map((ev, idx) => (
                 <div
                   key={idx}
@@ -445,7 +446,7 @@ export default function AIAutomatedStepper({
                   </div>
                 </div>
               ))}
-            </div>
+            </Animated>
 
             {aiAnalysis.step3.issueDetected && (
               <div className="bg-orange-50 border-2 border-orange-300 rounded-xl p-4 mb-3">
@@ -455,7 +456,7 @@ export default function AIAutomatedStepper({
                     AI phát hiện lỗi dữ liệu. Bạn muốn xử lý thế nào?
                   </p>
                 </div>
-                <div className="space-y-2">
+                <Animated className="space-y-2">
                   {(
                     [
                       {
@@ -495,7 +496,7 @@ export default function AIAutomatedStepper({
                       </div>
                     </label>
                   ))}
-                </div>
+                </Animated>
               </div>
             )}
 
@@ -675,6 +676,6 @@ export default function AIAutomatedStepper({
         <Sparkles className="w-5 h-5" />
         <span>XUẤT THẺ KIỂM CHỨNG</span>
       </button>
-    </div>
+    </Animated>
   );
 }

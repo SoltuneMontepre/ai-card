@@ -2,6 +2,7 @@
 
 import { CheckCircle, X } from 'lucide-react';
 import { useEffect } from 'react';
+import Animated from './Animated';
 
 interface ToastProps {
   message: string;
@@ -20,8 +21,8 @@ export default function Toast({ message, isVisible, onClose }: ToastProps) {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-4 fade-in duration-300">
-      <div className="bg-white border-2 border-emerald-500 rounded-xl shadow-2xl shadow-emerald-500/20 p-4 flex items-center gap-3 min-w-[320px]">
+    <Animated className="fixed bottom-6 right-6 z-50">
+      <div className="bg-white border-2 border-emerald-500 rounded-xl shadow-2xl shadow-emerald-500/20 p-4 flex items-center gap-3 min-w-[320px] animate-in slide-in-from-bottom-4 fade-in duration-300">
         <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
           <CheckCircle className="w-6 h-6 text-emerald-600" />
         </div>
@@ -35,6 +36,6 @@ export default function Toast({ message, isVisible, onClose }: ToastProps) {
           <X className="w-4 h-4 text-slate-400" />
         </button>
       </div>
-    </div>
+    </Animated>
   );
 }

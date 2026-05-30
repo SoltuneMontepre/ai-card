@@ -14,6 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import InteractiveHeader from "./InteractiveHeader";
+import Animated from "./Animated";
 
 interface PremiumLandingPageProps {
   inputValue: string;
@@ -111,7 +112,7 @@ export default function PremiumLandingPage({
                   </button>
                 </div>
 
-                <div className="p-8">
+                <Animated className="p-8">
                   {selectedTab === "text" ? (
                     <>
                       <div className="relative">
@@ -210,7 +211,7 @@ export default function PremiumLandingPage({
                       </>
                     )}
                   </button>
-                </div>
+                </Animated>
               </div>
             </div>
           </div>
@@ -218,7 +219,7 @@ export default function PremiumLandingPage({
 
         {/* Feature cards */}
         <section className="max-w-360 mx-auto px-8 pb-20">
-          <div className="max-w-6xl mx-auto grid grid-cols-3 gap-8">
+          <Animated className="max-w-6xl mx-auto grid grid-cols-3 gap-8">
             <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl p-8 hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-100 transition-all group">
               <div className="w-14 h-14 bg-linear-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
                 <FileText className="w-7 h-7 text-emerald-600" />
@@ -252,7 +253,7 @@ export default function PremiumLandingPage({
                 Tạo Verification Card minh chứng liêm chính.
               </p>
             </div>
-          </div>
+          </Animated>
         </section>
 
         <footer className="max-w-360 mx-auto px-8 pb-12">

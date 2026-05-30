@@ -19,6 +19,7 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import Animated from "./Animated";
 
 interface InteractiveHeaderProps {
   onLogoClick: () => void;
@@ -143,77 +144,78 @@ export default function InteractiveHeader({
                       </div>
 
                       <div className="max-h-[480px] overflow-y-auto">
-                        {historyLoading && (
-                          <div className="flex items-center justify-center py-8 text-slate-400">
-                            <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                            <span className="text-sm">Đang tải...</span>
-                          </div>
-                        )}
-
-                        {!historyLoading && !isLoggedIn && (
-                          <div className="py-8 text-center text-sm text-slate-500">
-                            Đăng nhập để xem lịch sử
-                          </div>
-                        )}
-
-                        {!historyLoading &&
-                          isLoggedIn &&
-                          (!history || history.length === 0) && (
-                            <div className="py-8 text-center text-sm text-slate-500">
-                              Chưa có phiên kiểm chứng nào
+                        <Animated>
+                          {historyLoading && (
+                            <div className="flex items-center justify-center py-8 text-slate-400">
+                              <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                              <span className="text-sm">Đang tải...</span>
                             </div>
                           )}
 
-                        {history && history.length > 0 && (
-                          <div className="divide-y divide-slate-100">
-                            {history.map((audit) => (
-                              <Link
-                                key={audit.id}
-                                href={`/history/${audit.auditCode}`}
-                                onClick={() => setIsHistoryOpen(false)}
-                                className="block p-4 hover:bg-slate-50 transition-colors group"
-                              >
-                                <div className="flex items-start justify-between mb-1.5">
-                                  <span className="font-mono text-sm font-semibold text-slate-700">
-                                    #{audit.auditCode.slice(-8).toUpperCase()}
-                                  </span>
-                                  <div className="flex items-center gap-2">
-                                    <span className={`px-2 py-0.5 text-xs font-bold rounded ${trustColor(audit.trustScore)}`}>
-                                      {audit.trustScore ?? "?"}%
+                          {!historyLoading && !isLoggedIn && (
+                            <div className="py-8 text-center text-sm text-slate-500">
+                              Đăng nhập để xem lịch sử
+                            </div>
+                          )}
+
+                          {!historyLoading &&
+                            isLoggedIn &&
+                            (!history || history.length === 0) && (
+                              <div className="py-8 text-center text-sm text-slate-500">
+                                Chưa có phiên kiểm chứng nào
+                              </div>
+                            )}
+
+                          {history && history.length > 0 && (
+                            <Animated className="divide-y divide-slate-100">
+                              {history.map((audit) => (
+                                <Link
+                                  key={audit.id}
+                                  href={`/history/${audit.auditCode}`}
+                                  onClick={() => setIsHistoryOpen(false)}
+                                  className="block p-4 hover:bg-slate-50 transition-colors group"
+                                >
+                                  <div className="flex items-start justify-between mb-1.5">
+                                    <span className="font-mono text-sm font-semibold text-slate-700">
+                                      #{audit.auditCode.slice(-8).toUpperCase()}
                                     </span>
-                                    <ChevronDown className="w-3.5 h-3.5 text-slate-300 group-hover:text-emerald-500 transition-colors -rotate-90" />
+                                    <div className="flex items-center gap-2">
+                                      <span className={`px-2 py-0.5 text-xs font-bold rounded ${trustColor(audit.trustScore)}`}>
+                                        {audit.trustScore ?? "?"}%
+                                      </span>
+                                      <ChevronDown className="w-3.5 h-3.5 text-slate-300 group-hover:text-emerald-500 transition-colors -rotate-90" />
+                                    </div>
                                   </div>
-                                </div>
-                                <div className="text-xs text-slate-500">
-                                  {formatDate(audit.completedAt ?? audit.createdAt)}
-                                  {audit.trustScore !== null && (
-                                    <span className="ml-2">
-                                      •{" "}
-                                      {audit.trustScore >= 70
-                                        ? "Độ tin cậy cao"
-                                        : audit.trustScore >= 40
-                                          ? "Cần xem xét"
-                                          : "Cảnh báo ảo giác"}
-                                    </span>
+                                  <div className="text-xs text-slate-500">
+                                    {formatDate(audit.completedAt ?? audit.createdAt)}
+                                    {audit.trustScore !== null && (
+                                      <span className="ml-2">
+                                        •{" "}
+                                        {audit.trustScore >= 70
+                                          ? "Độ tin cậy cao"
+                                          : audit.trustScore >= 40
+                                            ? "Cần xem xét"
+                                            : "Cảnh báo ảo giác"}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {audit.stepResults.length > 0 && (
+                                    <Animated className="flex gap-1 mt-2 flex-wrap">
+                                      {audit.stepResults.map((step) => (
+                                        <div key={step.stepNumber} className="flex items-center gap-0.5">
+                                          {stepIcon(step)}
+                                        </div>
+                                      ))}
+                                      <span className="text-xs text-slate-400 ml-1">
+                                        {audit.stepResults.length}/5 bước
+                                      </span>
+                                    </Animated>
                                   )}
-                                </div>
-                                {/* Step chips */}
-                                {audit.stepResults.length > 0 && (
-                                  <div className="flex gap-1 mt-2 flex-wrap">
-                                    {audit.stepResults.map((step) => (
-                                      <div key={step.stepNumber} className="flex items-center gap-0.5">
-                                        {stepIcon(step)}
-                                      </div>
-                                    ))}
-                                    <span className="text-xs text-slate-400 ml-1">
-                                      {audit.stepResults.length}/5 bước
-                                    </span>
-                                  </div>
-                                )}
-                              </Link>
-                            ))}
-                          </div>
-                        )}
+                                </Link>
+                              ))}
+                            </Animated>
+                          )}
+                        </Animated>
                         {/* Footer */}
                         <div className="p-3 bg-slate-50 border-t border-slate-100 text-center">
                           <Link

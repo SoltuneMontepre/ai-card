@@ -7,6 +7,7 @@ import {
   Check, Award, ExternalLink,
 } from "lucide-react";
 import type { Metadata } from "next";
+import Animated from "@/app/components/Animated";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -79,7 +80,7 @@ function StepCard({ step }: { step: { stepNumber: number; data: StepData } }) {
     case 1: {
       const sources = (d.sources as Array<Record<string, unknown>>) ?? [];
       body = (
-        <div className="space-y-2">
+        <Animated className="space-y-2">
           <p className="text-sm text-slate-500">
             {d.citationsFound as number} trích dẫn phát hiện
           </p>
@@ -99,7 +100,7 @@ function StepCard({ step }: { step: { stepNumber: number; data: StepData } }) {
           {sources.length === 0 && (
             <p className="text-sm text-slate-400 italic">Không tìm thấy trích dẫn</p>
           )}
-        </div>
+        </Animated>
       );
       break;
     }
@@ -124,7 +125,7 @@ function StepCard({ step }: { step: { stepNumber: number; data: StepData } }) {
     case 3: {
       const evidence = (d.evidence as Array<Record<string, unknown>>) ?? [];
       body = (
-        <div className="space-y-3">
+        <Animated className="space-y-3">
           {evidence.map((ev, i) => (
             <div
               key={i}
@@ -150,7 +151,7 @@ function StepCard({ step }: { step: { stepNumber: number; data: StepData } }) {
               </p>
             </div>
           ))}
-        </div>
+        </Animated>
       );
       break;
     }
@@ -364,7 +365,7 @@ export default async function AuditDetailPage({
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
                 Tổng quan bước
               </p>
-              <div className="space-y-2">
+              <Animated className="space-y-2">
                 {audit.stepResults.map((step) => (
                   <div key={step.stepNumber} className="flex items-center gap-2.5">
                     <div
@@ -385,7 +386,7 @@ export default async function AuditDetailPage({
                     </span>
                   </div>
                 ))}
-              </div>
+              </Animated>
             </div>
 
             {/* Original text snippet */}
@@ -413,12 +414,14 @@ export default async function AuditDetailPage({
                 </p>
               </div>
             ) : (
-              audit.stepResults.map((step) => (
-                <StepCard
-                  key={step.stepNumber}
-                  step={step as { stepNumber: number; data: StepData }}
-                />
-              ))
+              <Animated className="space-y-4">
+                {audit.stepResults.map((step) => (
+                  <StepCard
+                    key={step.stepNumber}
+                    step={step as { stepNumber: number; data: StepData }}
+                  />
+                ))}
+              </Animated>
             )}
           </div>
         </div>
