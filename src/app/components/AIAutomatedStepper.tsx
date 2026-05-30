@@ -244,6 +244,19 @@ export default function AIAutomatedStepper({
     { name: 'Risk', value: aiAnalysis.step5.hallucinationRisk },
     { name: 'Safe', value: 100 - aiAnalysis.step5.hallucinationRisk },
   ];
+  const hallucinationRisk = aiAnalysis.step5.hallucinationRisk;
+  const hallucinationRiskTextColor =
+    hallucinationRisk < 30
+      ? 'text-emerald-600'
+      : hallucinationRisk < 60
+        ? 'text-yellow-600'
+        : 'text-red-600';
+  const hallucinationRiskFill =
+    hallucinationRisk < 30
+      ? '#10B981'
+      : hallucinationRisk < 60
+        ? '#F59E0B'
+        : '#EF4444';
 
   // A step is unlocked if all previous steps are completed
   const isUnlocked = (i: number) => i === 0 || completedSteps[i - 1];
@@ -587,7 +600,7 @@ export default function AIAutomatedStepper({
         <StepAccordion isOpen={expandedStep === 4} isPending={stepPending[4]}>
           <div className="pt-4 border-t border-gray-100 animate-in fade-in duration-200">
             <div className="flex flex-col items-center mb-4">
-              <div className="relative">
+              <div className="relative w-[200px] h-[200px]">
                 <PieChart width={200} height={200}>
                   <Pie
                     data={hallucinationData}
@@ -600,37 +613,29 @@ export default function AIAutomatedStepper({
                     dataKey="value"
                     stroke="none"
                   >
-                    <Cell
-                      fill={
-                        aiAnalysis.step5.hallucinationRisk < 30
-                          ? '#10B981'
-                          : aiAnalysis.step5.hallucinationRisk < 60
-                            ? '#F59E0B'
-                            : '#EF4444'
-                      }
-                    />
+                    <Cell fill={hallucinationRiskFill} />
                     <Cell fill="#E5E7EB" />
                   </Pie>
                 </PieChart>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <div className="text-4xl font-bold text-emerald-600">
-                    {aiAnalysis.step5.hallucinationRisk}%
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                  <div className={`text-4xl font-bold leading-none ${hallucinationRiskTextColor}`}>
+                    {hallucinationRisk}%
                   </div>
-                  <div className="text-xs text-slate-500">Risk</div>
+                  <div className="text-xs text-slate-500 mt-1">Risk</div>
                 </div>
               </div>
               <div
                 className={`px-3 py-1 rounded-full text-sm font-semibold mt-1 ${
-                  aiAnalysis.step5.hallucinationRisk < 30
+                  hallucinationRisk < 30
                     ? 'bg-emerald-100 text-emerald-800'
-                    : aiAnalysis.step5.hallucinationRisk < 60
+                    : hallucinationRisk < 60
                       ? 'bg-yellow-100 text-yellow-800'
                       : 'bg-red-100 text-red-800'
                 }`}
               >
-                {aiAnalysis.step5.hallucinationRisk < 30
+                {hallucinationRisk < 30
                   ? 'Low Risk'
-                  : aiAnalysis.step5.hallucinationRisk < 60
+                  : hallucinationRisk < 60
                     ? 'Medium Risk'
                     : 'High Risk'}
               </div>

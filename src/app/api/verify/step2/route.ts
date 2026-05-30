@@ -1,5 +1,10 @@
 import { NextRequest } from "next/server";
 import { analyzeStep2, type StepContext } from "@/lib/gemini";
+import {
+  GeminiRateLimitError,
+  geminiRateLimitResponse,
+  getRateLimitKeyFromRequest,
+} from "@/lib/gemini-rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
@@ -7,9 +12,12 @@ export async function POST(request: NextRequest) {
     if (!text?.trim()) {
       return Response.json({ error: "Text is required" }, { status: 400 });
     }
-    const result = await analyzeStep2(text, context);
+    const result = await analyzeStep2(text, getRateLimitKeyFromRequest(request), context);
     return Response.json({ ...result, loading: false });
   } catch (err) {
+    if (err instanceof GeminiRateLimitError) {
+      return geminiRateLimitResponse(err);
+    }
     const message = err instanceof Error ? err.message : "Analysis failed";
     console.error("[verify/step2]", message);
     return Response.json({ error: message }, { status: 500 });

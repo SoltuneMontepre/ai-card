@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { acquireGeminiSlot } from "./gemini-rate-limit";
 import { applySkill } from "./skills";
 
 // ── Key Pool ──────────────────────────────────────────────────────────────────
@@ -27,7 +28,9 @@ function extractJson(raw: string): string {
 }
 
 // Try each key in order; move to the next on any error
-async function generate<T>(prompt: string): Promise<T> {
+async function generate<T>(prompt: string, rateLimitKey: string): Promise<T> {
+  acquireGeminiSlot(rateLimitKey);
+
   const keys = getApiKeys();
   if (keys.length === 0) {
     throw new Error("No Gemini API keys configured (GEMINI_API_KEY_1 … _5)");
@@ -157,42 +160,68 @@ function formatPreviousContext(ctx: StepContext, currentStep: number): string {
 
 // ── Prompt Functions (prompts live in skills/*.md) ────────────────────────────
 
-export async function analyzeStep1(text: string): Promise<Step1Result> {
-  return generate<Step1Result>(applySkill("step1-source-detection.md", { text }));
+export async function analyzeStep1(
+  text: string,
+  rateLimitKey: string,
+): Promise<Step1Result> {
+  return generate<Step1Result>(
+    applySkill("step1-source-detection.md", { text }),
+    rateLimitKey,
+  );
 }
 
-export async function analyzeStep2(text: string, ctx: StepContext = {}): Promise<Step2Result> {
+export async function analyzeStep2(
+  text: string,
+  rateLimitKey: string,
+  ctx: StepContext = {},
+): Promise<Step2Result> {
   return generate<Step2Result>(
     applySkill("step2-logic-analysis.md", {
       text,
       previous_context: formatPreviousContext(ctx, 2),
     }),
+    rateLimitKey,
   );
 }
 
-export async function analyzeStep3(text: string, ctx: StepContext = {}): Promise<Step3Result> {
+export async function analyzeStep3(
+  text: string,
+  rateLimitKey: string,
+  ctx: StepContext = {},
+): Promise<Step3Result> {
   return generate<Step3Result>(
     applySkill("step3-reality-check.md", {
       text,
       previous_context: formatPreviousContext(ctx, 3),
     }),
+    rateLimitKey,
   );
 }
 
-export async function analyzeStep4(text: string, ctx: StepContext = {}): Promise<Step4Result> {
+export async function analyzeStep4(
+  text: string,
+  rateLimitKey: string,
+  ctx: StepContext = {},
+): Promise<Step4Result> {
   return generate<Step4Result>(
     applySkill("step4-data-currency.md", {
       text,
       previous_context: formatPreviousContext(ctx, 4),
     }),
+    rateLimitKey,
   );
 }
 
-export async function analyzeStep5(text: string, ctx: StepContext = {}): Promise<Step5Result> {
+export async function analyzeStep5(
+  text: string,
+  rateLimitKey: string,
+  ctx: StepContext = {},
+): Promise<Step5Result> {
   return generate<Step5Result>(
     applySkill("step5-hallucination-risk.md", {
       text,
       previous_context: formatPreviousContext(ctx, 5),
     }),
+    rateLimitKey,
   );
 }
