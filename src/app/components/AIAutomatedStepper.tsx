@@ -300,6 +300,31 @@ export default function AIAutomatedStepper({
               Kết quả phân tích AI
             </h4>
             <Animated className="space-y-2.5 mb-4">
+              {aiAnalysis.step1.referenceOverview.summary && (
+                <div className="p-4 rounded-xl border-2 border-blue-200 bg-blue-50">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
+                        Reference rubric overview
+                      </p>
+                      <p className="text-sm text-slate-700 mt-1">
+                        {aiAnalysis.step1.referenceOverview.summary}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-2xl font-bold text-blue-700">
+                        {aiAnalysis.step1.referenceOverview.reliabilityGrade}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {aiAnalysis.step1.referenceOverview.reliabilityScore}/100
+                      </div>
+                    </div>
+                  </div>
+                  <div className="inline-flex items-center rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-blue-700 border border-blue-200">
+                    Confidence: {aiAnalysis.step1.referenceOverview.confidence}
+                  </div>
+                </div>
+              )}
               {aiAnalysis.step1.sources.map((source, idx) => (
                 <div
                   key={idx}
@@ -312,7 +337,7 @@ export default function AIAutomatedStepper({
                   <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm mb-1">
                     {source.name}
                   </div>
-                  <div className="flex items-center gap-4 text-xs">
+                  <div className="flex flex-wrap items-center gap-2 text-xs mb-2">
                     <span
                       className={`flex items-center gap-1 ${
                         source.status === 'active'
@@ -330,7 +355,19 @@ export default function AIAutomatedStepper({
                     <span className="text-slate-600 dark:text-slate-400">
                       Match: <strong>{source.matchScore}%</strong>
                     </span>
+                    <span className="rounded-full bg-white/80 px-2 py-0.5 font-semibold text-slate-700 border border-black/5">
+                      Tier {source.tier}
+                    </span>
+                    <span className="rounded-full bg-white/80 px-2 py-0.5 font-semibold text-slate-700 border border-black/5">
+                      Grade {source.reliabilityGrade}
+                    </span>
+                    <span className="text-slate-600">
+                      Reliability: <strong>{source.reliabilityScore}/100</strong>
+                    </span>
                   </div>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    {source.reason}
+                  </p>
                 </div>
               ))}
               {aiAnalysis.step1.sources.length === 0 && (

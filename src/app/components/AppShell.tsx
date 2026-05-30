@@ -44,7 +44,16 @@ interface AIAnalysisState {
 }
 
 const defaultAnalysis: AIAnalysisState = {
-  step1: { citationsFound: 0, sources: [] },
+  step1: {
+    citationsFound: 0,
+    sources: [],
+    referenceOverview: {
+      reliabilityScore: 0,
+      reliabilityGrade: "D",
+      confidence: "Low",
+      summary: "",
+    },
+  },
   step2: { logicScore: 0, summary: "" },
   step3: { issueDetected: false, evidence: [] },
   step4: { hasDataYear: false, dataYear: 0, freshness: "" },
@@ -81,6 +90,7 @@ export default function AppShell() {
   const [verifyUrl, setVerifyUrl] = useState<string | null>(null);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [pdfToast, setPdfToast] = useState<string | null>(null);
+  const [verifiedDisplayText, setVerifiedDisplayText] = useState("");
   const [screenRef] = useAnimatedRef(screenAnimateOptions);
   const certificateRef = useRef<HTMLDivElement>(null);
 
@@ -171,6 +181,8 @@ export default function AppShell() {
     setAiAnalysis(defaultAnalysis);
     setAuditCode(null);
     setVerifyUrl(null);
+    setPdfToast(null);
+    setVerifiedDisplayText("");
     verifiedText.current = "";
   };
 
@@ -201,6 +213,7 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
       }
 
       verifiedText.current = textToVerify;
+      setVerifiedDisplayText(textToVerify);
       setAiAnalysis(defaultAnalysis);
 
       // Navigate to workspace immediately — step 1 shows its loading skeleton
@@ -343,7 +356,7 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
                       </span>
                     </div>
                     <div className="text-slate-700 dark:text-slate-300 leading-relaxed text-sm whitespace-pre-wrap max-h-[60vh] overflow-y-auto">
-                      {verifiedText.current}
+                      {verifiedDisplayText}
                     </div>
                   </div>
                 </div>
