@@ -21,6 +21,8 @@ import InteractiveHeader from "./InteractiveHeader";
 import AuthModal from "./AuthModal";
 import Toast from "./Toast";
 import Animated, { useAnimatedRef } from "./Animated";
+
+const screenAnimateOptions = { duration: 280, easing: "ease-in-out" as const };
 import type {
   Step1Result,
   Step2Result,
@@ -75,7 +77,7 @@ export default function AppShell() {
   const [pendingNavigation, setPendingNavigation] = useState(false);
   const [auditCode, setAuditCode] = useState<string | null>(null);
   const [verifyUrl, setVerifyUrl] = useState<string | null>(null);
-  const [screenRef] = useAnimatedRef();
+  const [screenRef] = useAnimatedRef(screenAnimateOptions);
 
   // Store the text being verified so it doesn't change mid-session
   const verifiedText = useRef("");
@@ -253,7 +255,8 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
     <>
       <div ref={screenRef}>
         {currentScreen === "landing" && (
-          <PremiumLandingPage
+          <div key="landing">
+            <PremiumLandingPage
             inputValue={inputValue}
             setInputValue={setInputValue}
             selectedTab={selectedTab}
@@ -268,10 +271,11 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
             onLogoClick={resetAndGoHome}
             onLoginClick={() => setIsLoginModalOpen(true)}
           />
+          </div>
         )}
 
         {currentScreen === "workspace" && (
-          <div className="min-h-screen bg-gray-50">
+          <div key="workspace" className="min-h-screen bg-gray-50">
             <InteractiveHeader
               onLogoClick={resetAndGoHome}
               onLoginClick={() => setIsLoginModalOpen(true)}
@@ -341,7 +345,7 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
         )}
 
         {currentScreen === "result" && (
-          <div className="min-h-screen bg-gray-50">
+          <div key="result" className="min-h-screen bg-gray-50">
             <InteractiveHeader
               onLogoClick={resetAndGoHome}
               onLoginClick={() => setIsLoginModalOpen(true)}

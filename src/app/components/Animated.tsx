@@ -16,6 +16,6 @@ export default function Animated({ children, className, ...props }: AnimatedProp
   );
 }
 
-export function useAnimatedRef() {
-  return useAutoAnimate();
+export function useAnimatedRef(options?: Parameters<typeof useAutoAnimate>[0]) {
+  return useAutoAnimate(options);
 }
