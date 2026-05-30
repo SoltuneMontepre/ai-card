@@ -87,6 +87,7 @@ export interface Step3Result {
 }
 
 export interface Step4Result {
+  hasDataYear: boolean;
   dataYear: number;
   freshness: string;
 }
@@ -150,7 +151,11 @@ function formatPreviousContext(ctx: StepContext, currentStep: number): string {
 
   if (currentStep > 4 && ctx.step4) {
     lines.push("**Step 4 — Data Currency:**");
-    lines.push(`- Most recent data year: ${ctx.step4.dataYear}`);
+    if (ctx.step4.hasDataYear) {
+      lines.push(`- Most recent data year: ${ctx.step4.dataYear}`);
+    } else {
+      lines.push("- No temporal data year found in text");
+    }
     lines.push(`- Freshness: ${ctx.step4.freshness}`);
     lines.push("");
   }

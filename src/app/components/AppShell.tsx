@@ -14,6 +14,7 @@ import {
   Award,
   Shield,
   Download,
+  Loader2,
 } from "lucide-react";
 import AIAutomatedStepper from "./AIAutomatedStepper";
 import PremiumLandingPage from "./PremiumLandingPage";
@@ -21,6 +22,7 @@ import InteractiveHeader from "./InteractiveHeader";
 import AuthModal from "./AuthModal";
 import Toast from "./Toast";
 import Animated, { useAnimatedRef } from "./Animated";
+import { downloadElementAsPdf } from "@/lib/download-certificate-pdf";
 
 const screenAnimateOptions = { duration: 280, easing: "ease-in-out" as const };
 import type {
@@ -45,7 +47,7 @@ const defaultAnalysis: AIAnalysisState = {
   step1: { citationsFound: 0, sources: [] },
   step2: { logicScore: 0, summary: "" },
   step3: { issueDetected: false, evidence: [] },
-  step4: { dataYear: new Date().getFullYear(), freshness: "" },
+  step4: { hasDataYear: false, dataYear: 0, freshness: "" },
   step5: { hallucinationRisk: 0 },
 };
 
@@ -77,7 +79,10 @@ export default function AppShell() {
   const [pendingNavigation, setPendingNavigation] = useState(false);
   const [auditCode, setAuditCode] = useState<string | null>(null);
   const [verifyUrl, setVerifyUrl] = useState<string | null>(null);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const [pdfToast, setPdfToast] = useState<string | null>(null);
   const [screenRef] = useAnimatedRef(screenAnimateOptions);
+  const certificateRef = useRef<HTMLDivElement>(null);
 
   // Store the text being verified so it doesn't change mid-session
   const verifiedText = useRef("");
@@ -249,6 +254,23 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
 
   const today = new Date().toLocaleDateString("vi-VN");
 
+  const handleDownloadCertificate = async () => {
+    if (!certificateRef.current) return;
+    setIsDownloadingPdf(true);
+    setPdfToast(null);
+    try {
+      const code = auditCode?.slice(-6).toUpperCase() ?? "certificate";
+      await downloadElementAsPdf(
+        certificateRef.current,
+        `ai-verification-card-${code}.pdf`,
+      );
+    } catch {
+      setPdfToast("Không thể tải PDF. Vui lòng thử lại.");
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   // ── Screens ────────────────────────────────────────────────────────────────
 
   return (
@@ -275,20 +297,20 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
         )}
 
         {currentScreen === "workspace" && (
-          <div key="workspace" className="min-h-screen bg-gray-50">
+          <div key="workspace" className="min-h-screen bg-gray-50 dark:bg-slate-950">
             <InteractiveHeader
               onLogoClick={resetAndGoHome}
               onLoginClick={() => setIsLoginModalOpen(true)}
             />
 
-            <div className="bg-white border-b border-gray-200 shadow-sm">
+            <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 shadow-sm">
               <div className="w-full max-w-360 mx-auto px-8 py-4">
                 <div className="flex items-center justify-between">
                   <div className="flex-1 max-w-2xl mx-auto">
-                    <div className="mb-2 text-sm text-slate-600 text-center font-semibold">
+                    <div className="mb-2 text-sm text-slate-600 dark:text-slate-400 text-center font-semibold">
                       Hoàn thành: Bước {completedCount}/5
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
+                    <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3 shadow-inner">
                       <div
                         className="bg-linear-to-r from-emerald-500 to-emerald-600 h-3 rounded-full transition-all duration-500 shadow-lg shadow-emerald-500/30"
                         style={{ width: `${progressPercentage}%` }}
@@ -297,7 +319,7 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
                   </div>
                   <button
                     onClick={resetAndGoHome}
-                    className="px-4 py-2 border-2 border-red-500 text-red-500 rounded-lg hover:bg-red-50 transition-all font-semibold"
+                    className="px-4 py-2 border-2 border-red-500 text-red-500 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 transition-all font-semibold"
                   >
                     Hủy phiên
                   </button>
@@ -308,19 +330,19 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
             <div className="w-full max-w-360 mx-auto px-8 py-8">
               <div className="grid grid-cols-5 gap-8">
                 <div className="col-span-2">
-                  <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-                    <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+                  <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg shadow-sm p-6">
+                    <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200 dark:border-slate-700">
                       <div className="flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-slate-600" />
-                        <h2 className="text-lg font-semibold text-slate-800">
+                        <FileText className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
                           Đoạn văn bản cần kiểm tra
                         </h2>
                       </div>
-                      <span className="px-3 py-1 bg-slate-100 text-slate-600 text-sm rounded-full">
+                      <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm rounded-full">
                         {wordCount} từ
                       </span>
                     </div>
-                    <div className="text-slate-700 leading-relaxed text-sm whitespace-pre-wrap max-h-[60vh] overflow-y-auto">
+                    <div className="text-slate-700 dark:text-slate-300 leading-relaxed text-sm whitespace-pre-wrap max-h-[60vh] overflow-y-auto">
                       {verifiedText.current}
                     </div>
                   </div>
@@ -345,21 +367,21 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
         )}
 
         {currentScreen === "result" && (
-          <div key="result" className="min-h-screen bg-gray-50">
+          <div key="result" className="min-h-screen bg-gray-50 dark:bg-slate-950">
             <InteractiveHeader
               onLogoClick={resetAndGoHome}
               onLoginClick={() => setIsLoginModalOpen(true)}
             />
 
-            <div className="bg-linear-to-r from-emerald-50 to-green-50 border-b border-emerald-200 shadow-sm">
+            <div className="bg-linear-to-r from-emerald-50 to-green-50 dark:from-emerald-950/40 dark:to-green-950/40 border-b border-emerald-200 dark:border-emerald-900 shadow-sm">
               <div className="w-full max-w-360 mx-auto px-8 py-4">
                 <div className="flex items-center justify-between">
                   <div className="flex-1 max-w-2xl mx-auto">
-                    <div className="mb-2 text-sm text-emerald-700 font-bold text-center flex items-center justify-center gap-2">
+                    <div className="mb-2 text-sm text-emerald-700 dark:text-emerald-400 font-bold text-center flex items-center justify-center gap-2">
                       <CheckCircle2 className="w-5 h-5" />
                       <span>Hoàn thành: Bước 5/5</span>
                     </div>
-                    <div className="w-full bg-emerald-200 rounded-full h-3 shadow-inner">
+                    <div className="w-full bg-emerald-200 dark:bg-emerald-900 rounded-full h-3 shadow-inner">
                       <div
                         className="bg-linear-to-r from-emerald-500 to-emerald-600 h-3 rounded-full shadow-lg shadow-emerald-500/50 animate-pulse"
                         style={{ width: "100%" }}
@@ -380,9 +402,9 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
             <div className="w-full max-w-360 mx-auto px-8 py-12">
               <div className="grid grid-cols-2 gap-12">
                 <div className="space-y-8">
-                  <div className="bg-white rounded-2xl shadow-lg p-8">
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg dark:shadow-black/30 p-8">
                     <div className="flex flex-col items-center">
-                      <div className="relative">
+                      <div className="relative w-[280px] h-[280px]">
                         <PieChart width={280} height={280}>
                           <Pie
                             data={chartData}
@@ -407,23 +429,29 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
                             <Cell fill="#E5E7EB" />
                           </Pie>
                         </PieChart>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <div className="text-6xl font-bold text-emerald-600">
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                          <div className={`text-6xl font-bold leading-none ${
+                            trustScore >= 70
+                              ? "text-emerald-600"
+                              : trustScore >= 40
+                                ? "text-yellow-600"
+                                : "text-red-600"
+                          }`}>
                             {trustScore}%
                           </div>
-                          <div className="text-sm text-slate-500 mt-1">
+                          <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                             Trust Score
                           </div>
                         </div>
                       </div>
-                      <h2 className="text-2xl font-semibold text-slate-800 mt-6 text-center">
+                      <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mt-6 text-center">
                         Nội dung an toàn để sử dụng học thuật
                       </h2>
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-2xl shadow-lg p-8">
-                    <h3 className="text-lg font-semibold text-slate-800 mb-6">
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg dark:shadow-black/30 p-8">
+                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-6">
                       Tóm tắt kiểm chứng
                     </h3>
                     <Animated className="space-y-4">
@@ -438,22 +466,38 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
                           <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shrink-0">
                             <Check className="w-4 h-4 text-white" />
                           </div>
-                          <span className="text-slate-700">
+                          <span className="text-slate-700 dark:text-slate-300">
                             {i + 1}. {item}
                           </span>
                         </div>
                       ))}
                     </Animated>
-                    <button className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg mt-8">
-                      <Download className="w-5 h-5" />
-                      <span className="font-semibold">Tải Thẻ Chứng Nhận (PDF)</span>
+                    <button
+                      type="button"
+                      onClick={handleDownloadCertificate}
+                      disabled={isDownloadingPdf || !auditCode}
+                      className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isDownloadingPdf ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <Download className="w-5 h-5" />
+                      )}
+                      <span className="font-semibold">
+                        {isDownloadingPdf
+                          ? "Đang tạo PDF..."
+                          : "Tải Thẻ Chứng Nhận (PDF)"}
+                      </span>
                     </button>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-center">
                   <div className="w-full max-w-135">
-                    <div className="relative bg-linear-to-br from-[#0F172A] to-[#1E293B] rounded-2xl shadow-2xl p-12 border-4 border-emerald-500 overflow-hidden">
+                    <div
+                      ref={certificateRef}
+                      className="relative bg-linear-to-br from-[#0F172A] to-[#1E293B] rounded-2xl shadow-2xl p-12 border-4 border-emerald-500 overflow-hidden"
+                    >
                       <div className="absolute inset-0 opacity-10">
                         <div className="absolute top-0 left-0 w-32 h-32 border-l-2 border-t-2 border-emerald-400" />
                         <div className="absolute bottom-0 right-0 w-32 h-32 border-r-2 border-b-2 border-emerald-400" />
@@ -511,6 +555,12 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
           </div>
         )}
       </div>
+
+      <Toast
+        message={pdfToast ?? ""}
+        isVisible={!!pdfToast}
+        onClose={() => setPdfToast(null)}
+      />
 
       {currentScreen === "landing" && (
         <>

@@ -10,6 +10,7 @@ import type {
   Step1Result, Step2Result, Step3Result,
   Step4Result, Step5Result,
 } from '@/lib/gemini';
+import { step4HasDataYear, step4DataYear } from '@/lib/step4-display';
 import Animated from './Animated';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -40,21 +41,21 @@ interface AIAutomatedStepperProps {
 
 function StepLoadingSkeleton() {
   return (
-    <div className="pt-4 border-t border-gray-100 animate-in fade-in duration-300">
+    <div className="pt-4 border-t border-gray-100 dark:border-slate-800 animate-in fade-in duration-300">
       <div className="flex flex-col items-center justify-center py-6 gap-4">
         <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center">
           <Loader2 className="w-7 h-7 text-blue-400 animate-spin" />
         </div>
         <div className="text-center">
-          <p className="font-semibold text-slate-600 text-sm">
+          <p className="font-semibold text-slate-600 dark:text-slate-300 text-sm">
             Gemini AI đang phân tích...
           </p>
           <p className="text-xs text-slate-400 mt-0.5">Có thể mất 10–30 giây</p>
         </div>
         <div className="w-full space-y-2.5 animate-pulse">
-          <div className="h-14 bg-slate-100 rounded-xl" />
-          <div className="h-14 bg-slate-100 rounded-xl" />
-          <div className="h-10 bg-slate-200 rounded-xl w-3/4 mx-auto" />
+          <div className="h-14 bg-slate-100 dark:bg-slate-800 rounded-xl" />
+          <div className="h-14 bg-slate-100 dark:bg-slate-800 rounded-xl" />
+          <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded-xl w-3/4 mx-auto" />
         </div>
       </div>
     </div>
@@ -124,7 +125,7 @@ function StepHeader({
     <button
       onClick={disabled ? undefined : onToggle}
       className={`w-full text-left p-4 flex items-center justify-between transition-colors ${
-        disabled ? 'cursor-not-allowed opacity-75' : 'hover:bg-slate-50/60'
+        disabled ? 'cursor-not-allowed opacity-75' : 'hover:bg-slate-50/60 dark:hover:bg-slate-800/60'
       }`}
       aria-disabled={disabled}
     >
@@ -144,7 +145,7 @@ function StepHeader({
         </div>
 
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-slate-800 text-sm leading-tight">
+          <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm leading-tight">
             {title}
           </h3>
           {isPending ? (
@@ -194,7 +195,7 @@ function StepActions({
       {stepIndex > 0 && (
         <button
           onClick={onBack}
-          className="px-5 py-2.5 bg-white border-2 border-gray-200 text-slate-700 rounded-xl hover:bg-gray-50 transition-colors font-semibold flex items-center gap-1.5 text-sm"
+          className="px-5 py-2.5 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors font-semibold flex items-center gap-1.5 text-sm"
         >
           <ChevronLeft className="w-4 h-4" />
           Quay lại
@@ -203,7 +204,7 @@ function StepActions({
 
       {isCompleted ? (
         // Already approved — show status only, no re-trigger button
-        <div className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-50 border-2 border-emerald-200 rounded-xl text-emerald-700 text-sm font-semibold">
+        <div className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-200 dark:border-emerald-800 rounded-xl text-emerald-700 dark:text-emerald-300 text-sm font-semibold">
           <CheckCircle2 className="w-4 h-4" />
           Đã phê duyệt
         </div>
@@ -213,7 +214,7 @@ function StepActions({
           disabled={approveDisabled}
           className={`flex-1 px-5 py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 text-sm transition-all ${
             approveDisabled
-              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              ? 'bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-slate-500 cursor-not-allowed'
               : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm'
           }`}
         >
@@ -276,7 +277,7 @@ export default function AIAutomatedStepper({
     <Animated className="col-span-3 space-y-3">
 
       {/* ── Step 1 ── */}
-      <div className={`bg-white border-l-4 rounded-xl shadow-sm transition-all duration-200 ${borderFor(0)}`}>
+      <div className={`bg-white dark:bg-slate-900 border-l-4 rounded-xl shadow-sm transition-all duration-200 ${borderFor(0)}`}>
         <StepHeader
           index={0}
           title="Bước 1: Tự động quét Nguồn gốc"
@@ -293,8 +294,8 @@ export default function AIAutomatedStepper({
           onToggle={() => onToggleStep(0)}
         />
         <StepAccordion isOpen={expandedStep === 0} isPending={stepPending[0]}>
-          <div className="pt-4 border-t border-gray-100 animate-in fade-in duration-200">
-            <h4 className="font-semibold text-slate-800 mb-3 flex items-center gap-2 text-sm">
+          <div className="pt-4 border-t border-gray-100 dark:border-slate-800 animate-in fade-in duration-200">
+            <h4 className="font-semibold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2 text-sm">
               <Database className="w-4 h-4 text-blue-500" />
               Kết quả phân tích AI
             </h4>
@@ -308,7 +309,7 @@ export default function AIAutomatedStepper({
                       : 'bg-yellow-50 border-yellow-200'
                   }`}
                 >
-                  <div className="font-semibold text-slate-800 text-sm mb-1">
+                  <div className="font-semibold text-slate-800 dark:text-slate-100 text-sm mb-1">
                     {source.name}
                   </div>
                   <div className="flex items-center gap-4 text-xs">
@@ -350,7 +351,7 @@ export default function AIAutomatedStepper({
       </div>
 
       {/* ── Step 2 ── */}
-      <div className={`bg-white border-l-4 rounded-xl shadow-sm transition-all duration-200 ${borderFor(1)}`}>
+      <div className={`bg-white dark:bg-slate-900 border-l-4 rounded-xl shadow-sm transition-all duration-200 ${borderFor(1)}`}>
         <StepHeader
           index={1}
           title="Bước 2: Phân tích Cấu trúc Logic"
@@ -399,7 +400,7 @@ export default function AIAutomatedStepper({
       </div>
 
       {/* ── Step 3 ── */}
-      <div className={`bg-white border-l-4 rounded-xl shadow-sm transition-all duration-200 ${borderFor(2)}`}>
+      <div className={`bg-white dark:bg-slate-900 border-l-4 rounded-xl shadow-sm transition-all duration-200 ${borderFor(2)}`}>
         <StepHeader
           index={2}
           title="Bước 3: Đối chiếu Thực tiễn Tự động"
@@ -526,14 +527,16 @@ export default function AIAutomatedStepper({
       </div>
 
       {/* ── Step 4 ── */}
-      <div className={`bg-white border-l-4 rounded-xl shadow-sm transition-all duration-200 ${borderFor(3)}`}>
+      <div className={`bg-white dark:bg-slate-900 border-l-4 rounded-xl shadow-sm transition-all duration-200 ${borderFor(3)}`}>
         <StepHeader
           index={3}
           title="Bước 4: Kiểm tra Tính cập nhật"
           subtitle={
-            !stepPending[3] && aiAnalysis.step4.dataYear > 0
-              ? `Dữ liệu năm ${aiAnalysis.step4.dataYear}`
-              : undefined
+            !stepPending[3] && step4HasDataYear(aiAnalysis.step4)
+              ? `Dữ liệu năm ${step4DataYear(aiAnalysis.step4)}`
+              : !stepPending[3]
+                ? 'Không có mốc thời gian trong văn bản'
+                : undefined
           }
           isCompleted={completedSteps[3]}
           isPending={stepPending[3]}
@@ -543,30 +546,41 @@ export default function AIAutomatedStepper({
           onToggle={() => onToggleStep(3)}
         />
         <StepAccordion isOpen={expandedStep === 3} isPending={stepPending[3]}>
-          <div className="pt-4 border-t border-gray-100 animate-in fade-in duration-200">
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-5 rounded-xl border border-purple-200 mb-3">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-center flex-1">
-                  <p className="text-xs text-slate-500 mb-1">Năm hiện tại</p>
-                  <p className="text-3xl font-bold text-purple-600">2026</p>
+          <div className="pt-4 border-t border-gray-100 dark:border-slate-800 animate-in fade-in duration-200">
+            {step4HasDataYear(aiAnalysis.step4) ? (
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/40 dark:to-pink-950/40 p-5 rounded-xl border border-purple-200 dark:border-purple-800 mb-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-center flex-1">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Năm hiện tại</p>
+                    <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">2026</p>
+                  </div>
+                  <div className="text-3xl text-purple-200 dark:text-purple-700 font-light">→</div>
+                  <div className="text-center flex-1">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Năm dữ liệu</p>
+                    <p className="text-3xl font-bold text-pink-600 dark:text-pink-400">
+                      {step4DataYear(aiAnalysis.step4)}
+                    </p>
+                  </div>
                 </div>
-                <div className="text-3xl text-purple-200 font-light">→</div>
-                <div className="text-center flex-1">
-                  <p className="text-xs text-slate-500 mb-1">Năm dữ liệu</p>
-                  <p className="text-3xl font-bold text-pink-600">
-                    {aiAnalysis.step4.dataYear}
-                  </p>
-                </div>
+                <p className="text-xs text-center text-slate-600 dark:text-slate-400">
+                  Cách đây:{' '}
+                  <strong>{2026 - step4DataYear(aiAnalysis.step4)} năm</strong>
+                </p>
               </div>
-              <p className="text-xs text-center text-slate-600">
-                Cách đây:{' '}
-                <strong>{2026 - aiAnalysis.step4.dataYear} năm</strong>
-              </p>
-            </div>
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 mb-3">
+            ) : (
+              <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-xl border border-slate-200 dark:border-slate-700 mb-3 text-center">
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
+                  Không có mốc thời gian
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Văn bản không chứa năm hoặc ngày dữ liệu cụ thể
+                </p>
+              </div>
+            )}
+            <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3.5 mb-3">
               <div className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-slate-700">{aiAnalysis.step4.freshness}</p>
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-slate-700 dark:text-slate-300">{aiAnalysis.step4.freshness}</p>
               </div>
             </div>
             <StepActions
@@ -581,7 +595,7 @@ export default function AIAutomatedStepper({
       </div>
 
       {/* ── Step 5 ── */}
-      <div className={`bg-white border-l-4 rounded-xl shadow-sm transition-all duration-200 ${borderFor(4)}`}>
+      <div className={`bg-white dark:bg-slate-900 border-l-4 rounded-xl shadow-sm transition-all duration-200 ${borderFor(4)}`}>
         <StepHeader
           index={4}
           title="Bước 5: Đánh giá Ảo giác AI"

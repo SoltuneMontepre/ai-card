@@ -3,6 +3,7 @@ import { Shield, Award, CheckCircle2, AlertTriangle, Check, ExternalLink } from 
 import type { Metadata } from "next";
 import { getPublicAudit } from "@/lib/audit-public";
 import Animated from "@/app/components/Animated";
+import { step4HasDataYear, step4DataYear } from "@/lib/step4-display";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -142,8 +143,9 @@ function StepDetail({ step }: { step: StepResult }) {
       );
       break;
     }
-    case 4:
-      content = (
+    case 4: {
+      const hasYear = step4HasDataYear(d);
+      content = hasYear ? (
         <div>
           <div className="flex items-center gap-6 mb-2">
             <div className="text-center">
@@ -154,14 +156,22 @@ function StepDetail({ step }: { step: StepResult }) {
             <div className="text-center">
               <p className="text-white/40 text-xs">Năm dữ liệu</p>
               <p className="text-2xl font-bold text-pink-400">
-                {d.dataYear as number}
+                {step4DataYear(d)}
               </p>
             </div>
           </div>
           <p className="text-white/70 text-sm">{d.freshness as string}</p>
         </div>
+      ) : (
+        <div>
+          <p className="text-white/90 text-sm font-medium mb-2">
+            Không có mốc thời gian trong văn bản
+          </p>
+          <p className="text-white/70 text-sm">{d.freshness as string}</p>
+        </div>
       );
       break;
+    }
     case 5: {
       const risk = d.hallucinationRisk as number;
       const riskColor =

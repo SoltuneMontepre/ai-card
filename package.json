@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "npx prisma generate"
+    "postinstall": "bunx prisma generate"
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.9.0",
@@ -17,6 +17,8 @@
     "@tanstack/react-query": "^5.100.14",
     "axios": "^1.16.1",
     "bcryptjs": "^3.0.3",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
     "lucide-react": "^1.17.0",
     "mammoth": "^1.12.0",
     "next": "16.2.6",

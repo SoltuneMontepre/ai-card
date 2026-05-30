@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import type { Metadata } from "next";
 import Animated from "@/app/components/Animated";
+import ThemeToggle from "@/app/components/ThemeToggle";
+import { step4HasDataYear, step4DataYear } from "@/lib/step4-display";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -56,10 +58,10 @@ const STEP_LABELS = [
 ];
 
 function trustBand(score: number | null) {
-  if (score === null) return { label: "—", cls: "text-slate-500 bg-slate-100 border-slate-200" };
-  if (score >= 70) return { label: "Độ tin cậy cao", cls: "text-emerald-700 bg-emerald-50 border-emerald-300" };
-  if (score >= 40) return { label: "Cần xem xét", cls: "text-yellow-700 bg-yellow-50 border-yellow-300" };
-  return { label: "Cảnh báo: Rủi ro cao", cls: "text-red-700 bg-red-50 border-red-300" };
+  if (score === null) return { label: "—", cls: "text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700" };
+  if (score >= 70) return { label: "Độ tin cậy cao", cls: "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800" };
+  if (score >= 40) return { label: "Cần xem xét", cls: "text-yellow-700 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-950/40 border-yellow-300 dark:border-yellow-800" };
+  return { label: "Cảnh báo: Rủi ro cao", cls: "text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-800" };
 }
 
 function isWarning(step: { stepNumber: number; data: StepData }) {
@@ -156,7 +158,7 @@ function StepCard({ step }: { step: { stepNumber: number; data: StepData } }) {
       break;
     }
     case 4:
-      body = (
+      body = step4HasDataYear(d) ? (
         <div>
           <div className="flex items-center gap-8 mb-3">
             <div className="text-center">
@@ -167,17 +169,24 @@ function StepCard({ step }: { step: { stepNumber: number; data: StepData } }) {
             <div className="text-center">
               <p className="text-xs text-slate-500 mb-0.5">Năm dữ liệu</p>
               <p className="text-3xl font-bold text-pink-600">
-                {d.dataYear as number}
+                {step4DataYear(d)}
               </p>
             </div>
             <div className="text-center">
               <p className="text-xs text-slate-500 mb-0.5">Cách đây</p>
               <p className="text-2xl font-bold text-slate-600">
-                {2026 - (d.dataYear as number)} năm
+                {2026 - step4DataYear(d)} năm
               </p>
             </div>
           </div>
           <p className="text-sm text-slate-600">{d.freshness as string}</p>
+        </div>
+      ) : (
+        <div>
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2">
+            Không có mốc thời gian trong văn bản
+          </p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">{d.freshness as string}</p>
         </div>
       );
       break;
@@ -224,7 +233,7 @@ function StepCard({ step }: { step: { stepNumber: number; data: StepData } }) {
 
   return (
     <div
-      className={`bg-white rounded-2xl border-2 shadow-sm overflow-hidden ${
+      className={`bg-white dark:bg-slate-900 rounded-2xl border-2 shadow-sm overflow-hidden ${
         warn ? "border-yellow-300" : "border-slate-100"
       }`}
     >
@@ -272,25 +281,26 @@ export default async function AuditDetailPage({
   const band = trustBand(audit.trustScore);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
       {/* Header */}
-      <header className="border-b border-slate-200/60 bg-white/80 backdrop-blur-sm sticky top-0 z-40">
+      <header className="border-b border-slate-200/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm sticky top-0 z-40">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-4">
           <Link
             href="/history"
-            className="flex items-center gap-1.5 text-slate-500 hover:text-slate-900 transition-colors text-sm font-medium"
+            className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-sm font-medium"
           >
             <ArrowLeft className="w-4 h-4" />
             Lịch sử
           </Link>
-          <div className="w-px h-5 bg-slate-200" />
+          <div className="w-px h-5 bg-slate-200 dark:bg-slate-700" />
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center">
               <Shield className="w-5 h-5 text-white" strokeWidth={2.5} />
             </div>
-            <span className="font-bold text-slate-900">AI Verification Card</span>
+            <span className="font-bold text-slate-900 dark:text-slate-100">AI Verification Card</span>
           </div>
           <div className="ml-auto flex items-center gap-3">
+            <ThemeToggle />
             <span className="font-mono text-sm text-slate-400">#{shortCode}</span>
             {audit.verifyUrl && (
               <a
@@ -312,7 +322,7 @@ export default async function AuditDetailPage({
           {/* Left: summary panel */}
           <div className="space-y-5">
             {/* Trust score card */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col items-center text-center">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 flex flex-col items-center text-center">
               <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-yellow-500 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/30">
                 <Shield className="w-12 h-12 text-white" strokeWidth={2.5} />
               </div>
@@ -341,7 +351,7 @@ export default async function AuditDetailPage({
             </div>
 
             {/* Meta info */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-3 text-sm">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5 space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-slate-500">Audit ID</span>
                 <span className="font-mono font-semibold text-slate-800">
@@ -361,7 +371,7 @@ export default async function AuditDetailPage({
             </div>
 
             {/* Step overview chips */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
                 Tổng quan bước
               </p>
@@ -391,7 +401,7 @@ export default async function AuditDetailPage({
 
             {/* Original text snippet */}
             {audit.inputText && (
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                   Văn bản đã kiểm chứng
                 </p>
@@ -408,7 +418,7 @@ export default async function AuditDetailPage({
               Chi tiết từng bước kiểm chứng
             </h2>
             {audit.stepResults.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-12 text-center">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-12 text-center">
                 <p className="text-slate-400">
                   Không có dữ liệu chi tiết cho phiên kiểm chứng này.
                 </p>
