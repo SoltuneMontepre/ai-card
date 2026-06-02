@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { acquireGeminiSlot } from "./gemini-rate-limit";
+import { withGeminiKeyPool } from "./gemini-keys";
 import {
   buildSourceContext,
   mergeSourceVerifications,
@@ -8,18 +9,6 @@ import {
 } from "./gemini-grounded";
 import { applySkill, loadSkillReference } from "./skills";
 import { checkUrlsInText, extractUrlsFromText } from "./source-url";
-
-// ── Key Pool ──────────────────────────────────────────────────────────────────
-
-function getApiKeys(): string[] {
-  return [
-    process.env.GEMINI_API_KEY_1,
-    process.env.GEMINI_API_KEY_2,
-    process.env.GEMINI_API_KEY_3,
-    process.env.GEMINI_API_KEY_4,
-    process.env.GEMINI_API_KEY_5,
-  ].filter((k): k is string => !!k?.trim());
-}
 
 function makeModel(apiKey: string) {
   return new GoogleGenerativeAI(apiKey).getGenerativeModel({
@@ -34,31 +23,14 @@ function extractJson(raw: string): string {
   return fenced ? fenced[1].trim() : raw.trim();
 }
 
-// Try each key in order; move to the next on any error
 async function generate<T>(prompt: string, rateLimitKey: string): Promise<T> {
   acquireGeminiSlot(rateLimitKey);
 
-  const keys = getApiKeys();
-  if (keys.length === 0) {
-    throw new Error("No Gemini API keys configured (GEMINI_API_KEY_1 … _5)");
-  }
-
-  let lastError: unknown;
-  for (const key of keys) {
-    try {
-      const result = await makeModel(key).generateContent(prompt);
-      const raw = result.response.text();
-      return JSON.parse(extractJson(raw)) as T;
-    } catch (err) {
-      console.warn(
-        `[gemini] key …${key.slice(-6)} failed:`,
-        err instanceof Error ? err.message : err,
-      );
-      lastError = err;
-    }
-  }
-
-  throw lastError ?? new Error("All Gemini API keys failed");
+  return withGeminiKeyPool(async (key) => {
+    const result = await makeModel(key).generateContent(prompt);
+    const raw = result.response.text();
+    return JSON.parse(extractJson(raw)) as T;
+  });
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────

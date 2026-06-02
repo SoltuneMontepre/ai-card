@@ -1,17 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
 import { acquireGeminiSlot } from "./gemini-rate-limit";
+import { withGeminiKeyPool } from "./gemini-keys";
 import { applySkill } from "./skills";
 import type { Source, VerificationStatus } from "./gemini";
-
-function getApiKeys(): string[] {
-  return [
-    process.env.GEMINI_API_KEY_1,
-    process.env.GEMINI_API_KEY_2,
-    process.env.GEMINI_API_KEY_3,
-    process.env.GEMINI_API_KEY_4,
-    process.env.GEMINI_API_KEY_5,
-  ].filter((k): k is string => !!k?.trim());
-}
 
 function extractJson(raw: string): string {
   const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
@@ -90,40 +81,24 @@ export async function verifySourcesWithSearch(
     source_context: JSON.stringify(sourceContext, null, 2),
   });
 
-  const keys = getApiKeys();
-  if (keys.length === 0) {
-    throw new Error("No Gemini API keys configured (GEMINI_API_KEY_1 … _5)");
-  }
+  return withGeminiKeyPool(async (key) => {
+    const ai = new GoogleGenAI({ apiKey: key });
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        tools: [{ googleSearch: {} }],
+      },
+    });
 
-  let lastError: unknown;
-  for (const key of keys) {
-    try {
-      const ai = new GoogleGenAI({ apiKey: key });
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
-        config: {
-          tools: [{ googleSearch: {} }],
-        },
-      });
+    const raw = response.text ?? "";
+    const groundingUrls = parseGroundingUrls(
+      response.candidates?.[0]?.groundingMetadata?.groundingChunks,
+    );
+    const verifications = parseVerificationResponse(raw);
 
-      const raw = response.text ?? "";
-      const groundingUrls = parseGroundingUrls(
-        response.candidates?.[0]?.groundingMetadata?.groundingChunks,
-      );
-      const verifications = parseVerificationResponse(raw);
-
-      return { verifications, groundingUrls };
-    } catch (err) {
-      console.warn(
-        `[gemini-grounded] key …${key.slice(-6)} failed:`,
-        err instanceof Error ? err.message : err,
-      );
-      lastError = err;
-    }
-  }
-
-  throw lastError ?? new Error("All Gemini API keys failed for grounded search");
+    return { verifications, groundingUrls };
+  });
 }
 
 function normalizeName(name: string): string {
