@@ -11,7 +11,11 @@ import type {
   Step4Result, Step5Result,
 } from '@/lib/gemini';
 import { step4HasDataYear, step4DataYear } from '@/lib/step4-display';
-import { getSourceLink, getVerificationLabel } from '@/lib/source-display';
+import {
+  getContentLabel,
+  getSourceLink,
+  getVerificationLabel,
+} from '@/lib/source-display';
 import Animated from './Animated';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -350,12 +354,16 @@ export default function AIAutomatedStepper({
               {aiAnalysis.step1.sources.map((source, idx) => {
                 const link = getSourceLink(source);
                 const verificationLabel = getVerificationLabel(source);
+                const contentLabel = getContentLabel(source);
+                const isContentMismatch = source.contentStatus === 'mismatch';
                 const isVerified =
-                  source.verificationStatus === 'verified' ||
-                  source.verificationStatus === 'in_text';
+                  !isContentMismatch &&
+                  (source.verificationStatus === 'verified' ||
+                    source.verificationStatus === 'in_text');
                 const isSearchFailed =
                   source.verificationStatus === 'search_failed';
                 const isWarning =
+                  isContentMismatch ||
                   source.verificationStatus === 'not_found' ||
                   source.verificationStatus === 'unreachable' ||
                   (!source.verificationStatus && source.status === 'broken');
@@ -393,8 +401,26 @@ export default function AIAutomatedStepper({
                     </span>
                     {source.verificationStatus &&
                       source.verificationStatus !== 'search_failed' && (
-                      <span className="rounded-full bg-blue-50 px-2 py-0.5 font-semibold text-blue-700 border border-blue-200">
+                      <span className="rounded-full bg-blue-50 px-2 py-0.5 font-semibold text-blue-700 border border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800">
                         Google Search
+                      </span>
+                    )}
+                    {source.urlInText && (
+                      <span className="rounded-full bg-slate-50 px-2 py-0.5 font-semibold text-slate-600 border border-slate-200 dark:bg-slate-900/50 dark:text-slate-400 dark:border-slate-700">
+                        Kiểm tra HTTP
+                      </span>
+                    )}
+                    {contentLabel && source.contentStatus !== 'unknown' && (
+                      <span
+                        className={`rounded-full px-2 py-0.5 font-semibold border ${
+                          isContentMismatch
+                            ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-300 dark:border-red-800'
+                            : source.contentStatus === 'aligned'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800'
+                              : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800'
+                        }`}
+                      >
+                        {contentLabel}
                       </span>
                     )}
                     <span className="text-slate-600 dark:text-slate-400">
@@ -423,6 +449,11 @@ export default function AIAutomatedStepper({
                   {source.searchNote && (
                     <p className="text-xs text-slate-500 leading-relaxed mb-1">
                       {source.searchNote}
+                    </p>
+                  )}
+                  {source.contentNote && (
+                    <p className="text-xs text-slate-500 leading-relaxed mb-1">
+                      {source.contentNote}
                     </p>
                   )}
                   <p className="text-xs text-slate-600 leading-relaxed">

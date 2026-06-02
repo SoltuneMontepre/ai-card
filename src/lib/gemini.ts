@@ -3,12 +3,15 @@ import { acquireGeminiSlot } from "./gemini-rate-limit";
 import { withGeminiKeyPool } from "./gemini-keys";
 import {
   buildSourceContext,
+  collectUrlsForProbe,
   mergeSourceVerifications,
+  validateSourceContentWithSearch,
   verifySourcesWithSearch,
+  type SourceContentValidationResult,
   type SourceVerificationResult,
 } from "./gemini-grounded";
 import { applySkill, loadSkillReference } from "./skills";
-import { checkUrlsInText, extractUrlsFromText } from "./source-url";
+import { checkUrlReachability, extractUrlsFromText } from "./source-url";
 
 function makeModel(apiKey: string) {
   return new GoogleGenerativeAI(apiKey).getGenerativeModel({
@@ -43,6 +46,8 @@ export type VerificationStatus =
   | "in_text"
   | "search_failed";
 
+export type ContentStatus = "aligned" | "partial" | "mismatch" | "unknown";
+
 export interface Source {
   name: string;
   status: "active" | "broken";
@@ -52,10 +57,13 @@ export interface Source {
   reliabilityScore: number;
   reliabilityGrade: "A+" | "A" | "B" | "C" | "D";
   reason: string;
+  citedUrl?: string | null;
   discoveredUrl?: string | null;
   urlInText?: string | null;
   verificationStatus?: VerificationStatus;
   searchNote?: string;
+  contentStatus?: ContentStatus;
+  contentNote?: string;
 }
 
 export interface Step1Result {
@@ -189,20 +197,23 @@ export async function analyzeStep1(
   );
 
   const textUrls = extractUrlsFromText(text);
-  const urlChecks = await checkUrlsInText(textUrls);
+  const phase1Sources: Source[] = phase1.sources.map((s) => ({
+    ...s,
+    citedUrl: s.citedUrl ?? null,
+  }));
 
   let verification: SourceVerificationResult = {
     verifications: [],
     groundingUrls: [],
   };
-  const sourceNames = phase1.sources.map((s) => s.name);
+  const sourceNames = phase1Sources.map((s) => s.name);
   let searchFailed = false;
 
   if (sourceNames.length > 0) {
     try {
       verification = await verifySourcesWithSearch(
         text,
-        buildSourceContext(text, phase1.sources),
+        buildSourceContext(text, phase1Sources),
         rateLimitKey,
       );
     } catch (err) {
@@ -214,12 +225,44 @@ export async function analyzeStep1(
     }
   }
 
+  const urlsToProbe = collectUrlsForProbe(
+    textUrls,
+    verification,
+    phase1Sources,
+  );
+  const urlChecks = await checkUrlReachability(urlsToProbe);
+
+  let content: SourceContentValidationResult = { contentVerifications: [] };
+  let contentFailed = false;
+
+  if (sourceNames.length > 0 && !searchFailed) {
+    try {
+      content = await validateSourceContentWithSearch(
+        text,
+        buildSourceContext(text, phase1Sources),
+        phase1Sources,
+        verification,
+        urlsToProbe,
+        urlChecks,
+        rateLimitKey,
+      );
+    } catch (err) {
+      contentFailed = true;
+      console.warn(
+        "[step1] Content validation failed, using URL-only results:",
+        err instanceof Error ? err.message : err,
+      );
+    }
+  }
+
   const sources = mergeSourceVerifications(
-    phase1.sources,
+    phase1Sources,
     verification,
     urlChecks,
     textUrls,
     searchFailed,
+    content,
+    contentFailed,
   );
 
   const citationsFound = Math.max(phase1.citationsFound, sources.length);

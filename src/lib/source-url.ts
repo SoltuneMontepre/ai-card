@@ -33,15 +33,23 @@ async function probeUrl(url: string): Promise<UrlReachability> {
   }
 }
 
-/** Checks whether URLs found in the text respond to HTTP requests. */
-export async function checkUrlsInText(
+/** Checks whether URLs respond to HTTP requests (HEAD then GET). */
+export async function checkUrlReachability(
   urls: string[],
 ): Promise<Map<string, UrlReachability>> {
+  const unique = [...new Set(urls.filter(Boolean))];
   const results = new Map<string, UrlReachability>();
   await Promise.all(
-    urls.map(async (url) => {
+    unique.map(async (url) => {
       results.set(url, await probeUrl(url));
     }),
   );
   return results;
+}
+
+/** @deprecated Use checkUrlReachability — kept for call-site compatibility */
+export async function checkUrlsInText(
+  urls: string[],
+): Promise<Map<string, UrlReachability>> {
+  return checkUrlReachability(urls);
 }

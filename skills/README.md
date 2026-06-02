@@ -30,10 +30,12 @@ output_type: Step1Result   # TypeScript type the JSON must match
 
 ## Files
 
-| File                          | Step | What it does                                           |
-| ----------------------------- | ---- | ------------------------------------------------------ |
-| `step1-source-detection.md`   | 1    | Finds citations and rates their credibility            |
-| `step2-logic-analysis.md`     | 2    | Evaluates argument structure and logical fallacies     |
+| File                                  | Step | What it does                                           |
+| ------------------------------------- | ---- | ------------------------------------------------------ |
+| `step1-source-detection.md`           | 1    | Extracts citations and preliminary rubric scores       |
+| `step1-source-verification.md`        | 1    | Google Search — discovers official URLs                |
+| `step1-source-content-validation.md`| 1    | Google Search — checks claim vs web content alignment  |
+| `step2-logic-analysis.md`             | 2    | Evaluates argument structure and logical fallacies     |
 | `step3-reality-check.md`      | 3    | Cross-references factual claims against real knowledge |
 | `step4-data-currency.md`      | 4    | Assesses how up-to-date the referenced data is         |
 | `step5-hallucination-risk.md` | 5    | Scores overall AI hallucination probability            |

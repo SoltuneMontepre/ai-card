@@ -2,7 +2,7 @@
 name: source-detection
 step: 1
 description: Detects and evaluates citations, references, source signals, and source risks in AI-generated academic text
-version: 2.0.0
+version: 2.1.0
 output_type: Step1Result
 ---
 
@@ -49,14 +49,20 @@ Extract every distinct source-like item, including:
 
 ## Scoring
 
+**Important:** All scores in this phase are **preliminary**. Later steps will HTTP-check URLs,
+search for official pages, and verify whether page content supports nearby claims. Do not imply
+that links were tested or that claims were confirmed.
+
 For each extracted source:
 
 - **name**: the clearest concise identifier available.
-- **status** (preliminary — will be updated after web verification in a later step):
+- **citedUrl** (optional): if the text cites an explicit `http://` or `https://` URL for this
+  source on the same line or within the same sentence, copy that URL exactly; otherwise omit.
+- **status** (preliminary — updated after URL and content validation):
   - `"active"` if the source is identifiable, plausible, and likely verifiable.
   - `"broken"` if the source is vague, unverifiable, suspicious, misattributed, or hallucination-prone.
-  - Note: this is NOT a URL check. Do not imply that links were tested.
-- **matchScore**: confidence from 0 to 100 that the source genuinely exists and is being represented responsibly.
+  - Note: this is NOT a URL or content check. Do not imply that links were tested.
+- **matchScore** (preliminary): confidence from 0 to 100 that the source genuinely exists and is being represented responsibly.
 - **color**:
   - `"green"` if matchScore >= 60
   - `"yellow"` if matchScore < 60
@@ -85,7 +91,8 @@ Write all user-facing text fields in Vietnamese:
 ## Output Discipline
 
 Return ONLY valid JSON. Do not include markdown, comments, code fences, or extra text.
-Do not add fields beyond the schema. Do not use null. Use an empty array when no sources are found.
+Use only fields defined in the schema (optional `citedUrl` per source when applicable).
+Do not use null. Use an empty array when no sources are found.
 If no sources are found, still return a referenceOverview explaining that references are absent.
 
 ## Output Schema
@@ -95,6 +102,7 @@ If no sources are found, still return a referenceOverview explaining that refere
   "sources": [
     {
       "name": "string",
+      "citedUrl": "string (optional — exact http(s) URL from text when present)",
       "status": "active" | "broken",
       "matchScore": number,
       "color": "green" | "yellow",

@@ -2,7 +2,7 @@
 name: source-verification
 step: 1
 description: Verifies extracted sources via Google Search and finds official URLs
-version: 1.1.0
+version: 1.2.0
 output_type: SourceVerificationResult
 ---
 
@@ -22,15 +22,22 @@ For each source in the input list:
    percentages, organizations). Use these to craft specific search queries.
    Example: source `"GPT-4"` with excerpt mentioning `86.4%` → search for the official
    OpenAI GPT-4 research page.
-2. Search the web for the official or most authoritative page (publisher site, .gov,
-   .edu, official documentation, journal page, etc.).
-3. Set **discoveredUrl** to the best URL found, or `null` if nothing credible matches.
-4. Set **verificationStatus**:
-   - `"verified"` — clear official match found via search
-   - `"partial"` — related page found but not an exact match
+2. If the excerpt or original text contains an explicit `http://` or `https://` URL for this
+   source, search for that exact URL or use `site:domain` plus title/claim keywords.
+   - If search results suggest 404, removed content, redirect to unrelated pages, or a dead
+     link → set **verificationStatus** to `"unreachable"` (not `"verified"`).
+   - If the cited URL is stale but an official replacement page exists, set **discoveredUrl**
+     to the **current** official page and **verificationStatus** to `"partial"` with a
+     **searchNote** explaining the move (Vietnamese).
+3. Otherwise search the web for the official or most authoritative page (publisher site,
+   .gov, .edu, official documentation, journal page, etc.).
+4. Set **discoveredUrl** to the best URL found, or `null` if nothing credible matches.
+5. Set **verificationStatus**:
+   - `"verified"` — clear official match found via search and no sign the link is dead
+   - `"partial"` — related page found, exact match uncertain, or cited URL moved/replaced
    - `"not_found"` — no credible URL found after searching
-   - `"unreachable"` — only broken or suspicious pages found
-5. Write **searchNote** in Vietnamese (1 sentence): what was found or why nothing was found.
+   - `"unreachable"` — cited URL appears dead or only broken/suspicious pages found
+6. Write **searchNote** in Vietnamese (1 sentence): what was found or why nothing was found.
 
 Prefer URLs from your Google Search results. Do not invent URLs.
 

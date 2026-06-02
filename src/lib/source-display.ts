@@ -1,4 +1,4 @@
-import type { Source, VerificationStatus } from "./gemini";
+import type { ContentStatus, Source, VerificationStatus } from "./gemini";
 
 const VERIFICATION_LABELS: Record<VerificationStatus, string> = {
   verified: "Đã tìm thấy nguồn",
@@ -8,6 +8,20 @@ const VERIFICATION_LABELS: Record<VerificationStatus, string> = {
   unreachable: "Link không truy cập được",
   search_failed: "Không thể tìm kiếm (lỗi API)",
 };
+
+const CONTENT_LABELS: Record<ContentStatus, string> = {
+  aligned: "Nội dung khớp",
+  partial: "Khớp một phần (nội dung)",
+  mismatch: "Không khớp nội dung",
+  unknown: "Chưa kiểm tra nội dung",
+};
+
+export function getContentLabel(source: {
+  contentStatus?: ContentStatus;
+}): string | null {
+  if (!source.contentStatus) return null;
+  return CONTENT_LABELS[source.contentStatus];
+}
 
 export function getVerificationLabel(source: {
   status?: string;

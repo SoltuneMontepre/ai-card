@@ -6,16 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { PieChart, Pie, Cell } from "recharts";
 import QRCode from "react-qr-code";
-import {
-  FileText,
-  Check,
-  CheckCircle2,
-  Home,
-  Award,
-  Shield,
-  Download,
-  Loader2,
-} from "lucide-react";
+import { FileText, Check, CheckCircle2, Home, Award, Shield, Download, Loader2 } from "lucide-react";
 import AIAutomatedStepper from "./AIAutomatedStepper";
 import PremiumLandingPage from "./PremiumLandingPage";
 import InteractiveHeader from "./InteractiveHeader";
@@ -25,13 +16,7 @@ import Animated, { useAnimatedRef } from "./Animated";
 import { downloadElementAsPdf } from "@/lib/download-certificate-pdf";
 
 const screenAnimateOptions = { duration: 280, easing: "ease-in-out" as const };
-import type {
-  Step1Result,
-  Step2Result,
-  Step3Result,
-  Step4Result,
-  Step5Result,
-} from "@/lib/gemini";
+import type { Step1Result, Step2Result, Step3Result, Step4Result, Step5Result } from "@/lib/gemini";
 
 type Screen = "landing" | "workspace" | "result";
 
@@ -66,18 +51,9 @@ export default function AppShell() {
 
   const [currentScreen, setCurrentScreen] = useState<Screen>("landing");
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
-  const [completedSteps, setCompletedSteps] = useState<boolean[]>([
-    false,
-    false,
-    false,
-    false,
-    false,
-  ]);
-  const [step3UserChoice, setStep3UserChoice] = useState<
-    "accept" | "override" | null
-  >(null);
-  const [aiAnalysis, setAiAnalysis] =
-    useState<AIAnalysisState>(defaultAnalysis);
+  const [completedSteps, setCompletedSteps] = useState<boolean[]>([false, false, false, false, false]);
+  const [step3UserChoice, setStep3UserChoice] = useState<"accept" | "override" | null>(null);
+  const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisState>(defaultAnalysis);
 
   const [inputValue, setInputValue] = useState("");
   const [selectedTab, setSelectedTab] = useState<"text" | "file">("text");
@@ -98,9 +74,7 @@ export default function AppShell() {
   const verifiedText = useRef("");
   const sessionAbortRef = useRef<AbortController | null>(null);
 
-  const wordCount = inputValue.trim()
-    ? inputValue.trim().split(/\s+/).length
-    : 0;
+  const wordCount = inputValue.trim() ? inputValue.trim().split(/\s+/).length : 0;
 
   // ── Mutations ──────────────────────────────────────────────────────────────
 
@@ -116,26 +90,20 @@ export default function AppShell() {
     },
   });
 
-  function makeStepMutation<T extends object>(
-    url: string,
-    stepKey: keyof AIAnalysisState,
-  ) {
+  function makeStepMutation<T extends object>(url: string, stepKey: keyof AIAnalysisState) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     return useMutation({
-      mutationFn: ({
-        text,
-        context,
-      }: {
-        text: string;
-        context: Partial<AIAnalysisState>;
-      }) =>
+      mutationFn: ({ text, context }: { text: string; context: Partial<AIAnalysisState> }) =>
         axios
-          .post<T>(url, { text, context }, {
-            signal: sessionAbortRef.current?.signal,
-          })
+          .post<T>(
+            url,
+            { text, context },
+            {
+              signal: sessionAbortRef.current?.signal,
+            },
+          )
           .then((r) => r.data),
-      onSuccess: (data) =>
-        setAiAnalysis((prev) => ({ ...prev, [stepKey]: data })),
+      onSuccess: (data) => setAiAnalysis((prev) => ({ ...prev, [stepKey]: data })),
     });
   }
 
@@ -169,8 +137,7 @@ export default function AppShell() {
   const allStepsCompleted = completedSteps.every((s) => s);
   const progressPercentage = (completedCount / 5) * 100;
 
-  const toggleStep = (index: number) =>
-    setExpandedStep(expandedStep === index ? null : index);
+  const toggleStep = (index: number) => setExpandedStep(expandedStep === index ? null : index);
 
   const approveStep = (index: number) => {
     const newSteps = [...completedSteps];
@@ -218,7 +185,9 @@ export default function AppShell() {
     setInputValue(
       `Trí tuệ nhân tạo sinh tạo (Generative AI) là một lĩnh vực của học máy tập trung vào việc tạo ra nội dung mới như văn bản, hình ảnh, âm thanh và video. Các mô hình như GPT-4 và DALL-E đã cho thấy khả năng tạo ra nội dung có chất lượng gần như con người. Công nghệ này đang được ứng dụng rộng rãi trong nhiều lĩnh vực từ giáo dục, nghệ thuật đến y tế và kinh doanh.
 
-Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có thể xử lý và tạo ra văn bản với độ chính xác lên đến 85% trong các nhiệm vụ phức tạp. Tuy nhiên, người dùng cần lưu ý rằng AI vẫn có thể tạo ra thông tin không chính xác hoặc thiên kiến dựa trên dữ liệu huấn luyện.`,
+Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có thể xử lý và tạo ra văn bản với độ chính xác lên đến 85% trong các nhiệm vụ phức tạp. Tuy nhiên, người dùng cần lưu ý rằng AI vẫn có thể tạo ra thông tin không chính xác hoặc thiên kiến dựa trên dữ liệu huấn luyện.
+
+Theo báo cáo kỹ thuật GPT-4 của OpenAI năm 2023, GPT-4 đạt 86.4% trên benchmark MMLU, một bộ câu hỏi trắc nghiệm bao phủ 57 lĩnh vực học thuật và chuyên môn.`,
     );
   };
 
@@ -286,10 +255,7 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
     }
   };
 
-  const trustScore = Math.max(
-    0,
-    Math.min(100, 100 - aiAnalysis.step5.hallucinationRisk),
-  );
+  const trustScore = Math.max(0, Math.min(100, 100 - aiAnalysis.step5.hallucinationRisk));
   const chartData = [
     { name: "Trust", value: trustScore },
     { name: "Remaining", value: 100 - trustScore },
@@ -303,11 +269,9 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
     setPdfToast(null);
     try {
       const code = auditCode?.slice(-6).toUpperCase() ?? "certificate";
-      await downloadElementAsPdf(
-        certificateRef.current,
-        `ai-verification-card-${code}.pdf`,
-      );
-    } catch {
+      await downloadElementAsPdf(certificateRef.current, `ai-verification-card-${code}.pdf`);
+    } catch (err) {
+      console.error("[certificate-pdf]", err);
       setPdfToast("Không thể tải PDF. Vui lòng thử lại.");
     } finally {
       setIsDownloadingPdf(false);
@@ -322,29 +286,26 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
         {currentScreen === "landing" && (
           <div key="landing">
             <PremiumLandingPage
-            inputValue={inputValue}
-            setInputValue={setInputValue}
-            selectedTab={selectedTab}
-            setSelectedTab={setSelectedTab}
-            uploadedFile={uploadedFile}
-            onFileSelect={setUploadedFile}
-            onFileRemove={() => setUploadedFile(null)}
-            isLoading={isLoading}
-            wordCount={wordCount}
-            loadSampleText={loadSampleText}
-            handleStartVerification={handleStartVerification}
-            onLogoClick={resetAndGoHome}
-            onLoginClick={() => setIsLoginModalOpen(true)}
-          />
+              inputValue={inputValue}
+              setInputValue={setInputValue}
+              selectedTab={selectedTab}
+              setSelectedTab={setSelectedTab}
+              uploadedFile={uploadedFile}
+              onFileSelect={setUploadedFile}
+              onFileRemove={() => setUploadedFile(null)}
+              isLoading={isLoading}
+              wordCount={wordCount}
+              loadSampleText={loadSampleText}
+              handleStartVerification={handleStartVerification}
+              onLogoClick={resetAndGoHome}
+              onLoginClick={() => setIsLoginModalOpen(true)}
+            />
           </div>
         )}
 
         {currentScreen === "workspace" && (
           <div key="workspace" className="min-h-screen bg-gray-50 dark:bg-slate-950">
-            <InteractiveHeader
-              onLogoClick={resetAndGoHome}
-              onLoginClick={() => setIsLoginModalOpen(true)}
-            />
+            <InteractiveHeader onLogoClick={resetAndGoHome} onLoginClick={() => setIsLoginModalOpen(true)} />
 
             <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 shadow-sm">
               <div className="w-full max-w-360 mx-auto px-8 py-4">
@@ -377,9 +338,7 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
                     <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200 dark:border-slate-700">
                       <div className="flex items-center gap-2">
                         <FileText className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-                          Đoạn văn bản cần kiểm tra
-                        </h2>
+                        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Đoạn văn bản cần kiểm tra</h2>
                       </div>
                       <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm rounded-full">
                         {wordCount} từ
@@ -411,10 +370,7 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
 
         {currentScreen === "result" && (
           <div key="result" className="min-h-screen bg-gray-50 dark:bg-slate-950">
-            <InteractiveHeader
-              onLogoClick={resetAndGoHome}
-              onLoginClick={() => setIsLoginModalOpen(true)}
-            />
+            <InteractiveHeader onLogoClick={resetAndGoHome} onLoginClick={() => setIsLoginModalOpen(true)} />
 
             <div className="bg-linear-to-r from-emerald-50 to-green-50 dark:from-emerald-950/40 dark:to-green-950/40 border-b border-emerald-200 dark:border-emerald-900 shadow-sm">
               <div className="w-full max-w-360 mx-auto px-8 py-4">
@@ -460,31 +416,19 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
                             dataKey="value"
                             stroke="none"
                           >
-                            <Cell
-                              fill={
-                                trustScore >= 70
-                                  ? "#10B981"
-                                  : trustScore >= 40
-                                    ? "#F59E0B"
-                                    : "#EF4444"
-                              }
-                            />
+                            <Cell fill={trustScore >= 70 ? "#10B981" : trustScore >= 40 ? "#F59E0B" : "#EF4444"} />
                             <Cell fill="#E5E7EB" />
                           </Pie>
                         </PieChart>
                         <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-                          <div className={`text-6xl font-bold leading-none ${
-                            trustScore >= 70
-                              ? "text-emerald-600"
-                              : trustScore >= 40
-                                ? "text-yellow-600"
-                                : "text-red-600"
-                          }`}>
+                          <div
+                            className={`text-6xl font-bold leading-none ${
+                              trustScore >= 70 ? "text-emerald-600" : trustScore >= 40 ? "text-yellow-600" : "text-red-600"
+                            }`}
+                          >
                             {trustScore}%
                           </div>
-                          <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                            Trust Score
-                          </div>
+                          <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">Trust Score</div>
                         </div>
                       </div>
                       <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mt-6 text-center">
@@ -494,17 +438,9 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
                   </div>
 
                   <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg dark:shadow-black/30 p-8">
-                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-6">
-                      Tóm tắt kiểm chứng
-                    </h3>
+                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-6">Tóm tắt kiểm chứng</h3>
                     <Animated className="space-y-4">
-                      {[
-                        "Nguồn gốc hợp lệ",
-                        "Logic nhất quán",
-                        "Khớp với thực tiễn",
-                        "Dữ liệu cập nhật",
-                        "Không có ảo giác AI",
-                      ].map((item, i) => (
+                      {["Nguồn gốc hợp lệ", "Logic nhất quán", "Khớp với thực tiễn", "Dữ liệu cập nhật", "Không có ảo giác AI"].map((item, i) => (
                         <div key={i} className="flex items-center gap-3">
                           <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shrink-0">
                             <Check className="w-4 h-4 text-white" />
@@ -521,16 +457,8 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
                       disabled={isDownloadingPdf || !auditCode}
                       className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isDownloadingPdf ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                      ) : (
-                        <Download className="w-5 h-5" />
-                      )}
-                      <span className="font-semibold">
-                        {isDownloadingPdf
-                          ? "Đang tạo PDF..."
-                          : "Tải Thẻ Chứng Nhận (PDF)"}
-                      </span>
+                      {isDownloadingPdf ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+                      <span className="font-semibold">{isDownloadingPdf ? "Đang tạo PDF..." : "Tải Thẻ Chứng Nhận (PDF)"}</span>
                     </button>
                   </div>
                 </div>
@@ -549,19 +477,12 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
                       <div className="relative z-10 flex flex-col items-center text-center">
                         <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/20 border border-emerald-400 rounded-full mb-8">
                           <Award className="w-4 h-4 text-emerald-400" />
-                          <span className="text-emerald-400 font-semibold text-sm tracking-wider">
-                            VERIFIED CONTENT
-                          </span>
+                          <span className="text-emerald-400 font-semibold text-sm tracking-wider">VERIFIED CONTENT</span>
                         </div>
                         <div className="w-32 h-32 bg-linear-to-br from-emerald-400 to-yellow-500 rounded-full flex items-center justify-center mb-8 shadow-lg shadow-emerald-500/50">
-                          <Shield
-                            className="w-20 h-20 text-white"
-                            strokeWidth={2.5}
-                          />
+                          <Shield className="w-20 h-20 text-white" strokeWidth={2.5} />
                         </div>
-                        <h2 className="text-2xl font-bold text-white mb-3">
-                          AI Verification Card
-                        </h2>
+                        <h2 className="text-2xl font-bold text-white mb-3">AI Verification Card</h2>
                         <p className="text-emerald-400 text-lg mb-8 leading-relaxed">
                           Đã kiểm chứng bởi Khung MLN111
                           <br />
@@ -571,9 +492,7 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
                         <div className="flex items-center justify-between w-full text-sm">
                           <div className="text-left">
                             <div className="text-gray-400 mb-1">Audit ID</div>
-                            <div className="text-white font-mono font-semibold">
-                              #{auditCode?.slice(-6).toUpperCase() ?? "------"}
-                            </div>
+                            <div className="text-white font-mono font-semibold">#{auditCode?.slice(-6).toUpperCase() ?? "------"}</div>
                           </div>
                           <div className="text-center">
                             <div className="text-gray-400 mb-1">Date</div>
@@ -599,11 +518,7 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
         )}
       </div>
 
-      <Toast
-        message={pdfToast ?? ""}
-        isVisible={!!pdfToast}
-        onClose={() => setPdfToast(null)}
-      />
+      <Toast message={pdfToast ?? ""} isVisible={!!pdfToast} onClose={() => setPdfToast(null)} />
 
       {currentScreen === "landing" && (
         <>
@@ -615,11 +530,7 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
             }}
             onAuthSuccess={handleLoginSuccess}
           />
-          <Toast
-            message="Xác thực thành công. Chào mừng bạn!"
-            isVisible={showToast}
-            onClose={() => setShowToast(false)}
-          />
+          <Toast message="Xác thực thành công. Chào mừng bạn!" isVisible={showToast} onClose={() => setShowToast(false)} />
         </>
       )}
     </>

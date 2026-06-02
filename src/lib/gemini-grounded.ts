@@ -2,7 +2,11 @@ import { GoogleGenAI } from "@google/genai";
 import { acquireGeminiSlot } from "./gemini-rate-limit";
 import { withGeminiKeyPool } from "./gemini-keys";
 import { applySkill } from "./skills";
-import type { Source, VerificationStatus } from "./gemini";
+import type {
+  ContentStatus,
+  Source,
+  VerificationStatus,
+} from "./gemini";
 
 function extractJson(raw: string): string {
   const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
@@ -32,6 +36,20 @@ export interface SourceVerificationResult {
   verifications: SourceVerificationItem[];
   groundingUrls: GroundingUrl[];
   searchFailed?: boolean;
+}
+
+export interface SourceContentVerificationItem {
+  name: string;
+  contentStatus: ContentStatus;
+  contentNote: string;
+}
+
+export interface SourceContentValidationResult {
+  contentVerifications: SourceContentVerificationItem[];
+}
+
+interface ContentValidationResponse {
+  contentVerifications?: SourceContentVerificationItem[];
 }
 
 interface VerificationResponse {
@@ -99,6 +117,119 @@ export async function verifySourcesWithSearch(
 
     return { verifications, groundingUrls };
   });
+}
+
+function parseContentValidationResponse(
+  raw: string,
+): SourceContentVerificationItem[] {
+  try {
+    const parsed = JSON.parse(extractJson(raw)) as ContentValidationResponse;
+    return parsed.contentVerifications ?? [];
+  } catch {
+    return [];
+  }
+}
+
+/** Collects all URLs to HTTP-probe after discovery. */
+export function collectUrlsForProbe(
+  textUrls: string[],
+  verification: SourceVerificationResult,
+  sources: Array<{ citedUrl?: string | null }>,
+): string[] {
+  const set = new Set<string>(textUrls);
+  for (const v of verification.verifications) {
+    if (v.discoveredUrl) set.add(v.discoveredUrl);
+  }
+  for (const g of verification.groundingUrls) {
+    if (g.uri) set.add(g.uri);
+  }
+  for (const s of sources) {
+    if (s.citedUrl) set.add(s.citedUrl);
+  }
+  return [...set];
+}
+
+function buildUrlReachabilityPayload(
+  urls: string[],
+  urlChecks: Map<string, "reachable" | "unreachable">,
+): string {
+  const entries = urls.map((url) => ({
+    url,
+    reachability: urlChecks.get(url) ?? "unreachable",
+  }));
+  return JSON.stringify(entries, null, 2);
+}
+
+function buildUrlDiscoveryPayload(
+  sources: Source[],
+  verification: SourceVerificationResult,
+): string {
+  const byName = new Map(
+    verification.verifications.map((v) => [normalizeName(v.name), v]),
+  );
+  const payload = sources.map((s) => {
+    const v = byName.get(normalizeName(s.name));
+    return {
+      name: s.name,
+      citedUrl: s.citedUrl ?? null,
+      discoveredUrl: v?.discoveredUrl ?? null,
+      verificationStatus: v?.verificationStatus ?? "not_found",
+      searchNote: v?.searchNote ?? "",
+    };
+  });
+  return JSON.stringify(payload, null, 2);
+}
+
+/** Uses Gemini + Google Search to check whether excerpts align with web evidence. */
+export async function validateSourceContentWithSearch(
+  text: string,
+  sourceContext: SourceContextItem[],
+  sources: Source[],
+  verification: SourceVerificationResult,
+  urlsToProbe: string[],
+  urlChecks: Map<string, "reachable" | "unreachable">,
+  rateLimitKey: string,
+): Promise<SourceContentValidationResult> {
+  if (sourceContext.length === 0) {
+    return { contentVerifications: [] };
+  }
+
+  acquireGeminiSlot(rateLimitKey);
+
+  const prompt = applySkill("step1-source-content-validation.md", {
+    text,
+    sources: JSON.stringify(
+      sourceContext.map((s) => s.name),
+      null,
+      2,
+    ),
+    source_context: JSON.stringify(sourceContext, null, 2),
+    url_reachability: buildUrlReachabilityPayload(urlsToProbe, urlChecks),
+    url_discovery: buildUrlDiscoveryPayload(sources, verification),
+  });
+
+  return withGeminiKeyPool(async (key) => {
+    const ai = new GoogleGenAI({ apiKey: key });
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        tools: [{ googleSearch: {} }],
+      },
+    });
+
+    const raw = response.text ?? "";
+    const contentVerifications = parseContentValidationResponse(raw);
+    return { contentVerifications };
+  });
+}
+
+function isUrlReachable(
+  url: string | null | undefined,
+  urlChecks: Map<string, "reachable" | "unreachable">,
+): boolean {
+  if (!url) return false;
+  return urlChecks.get(url) === "reachable";
 }
 
 function normalizeName(name: string): string {
@@ -208,13 +339,138 @@ function applyGroundingMatch(
   };
 }
 
-/** Merges Phase 1 sources with web verification and in-text URL checks. */
+function applyUrlReachability(
+  urlInText: string | null,
+  discoveredUrl: string | null,
+  verificationStatus: VerificationStatus,
+  searchNote: string,
+  urlChecks: Map<string, "reachable" | "unreachable">,
+  searchStatus: VerificationStatus | undefined,
+): {
+  discoveredUrl: string | null;
+  verificationStatus: VerificationStatus;
+  searchNote: string;
+} {
+  const citedReachable = isUrlReachable(urlInText, urlChecks);
+  const discoveredReachable = isUrlReachable(discoveredUrl, urlChecks);
+
+  if (urlInText && citedReachable) {
+    return {
+      discoveredUrl: discoveredUrl ?? urlInText,
+      verificationStatus: "in_text",
+      searchNote:
+        searchNote || "Link có trong văn bản và phản hồi hợp lệ.",
+    };
+  }
+
+  if (
+    urlInText &&
+    !citedReachable &&
+    discoveredUrl &&
+    discoveredReachable &&
+    discoveredUrl !== urlInText
+  ) {
+    const status =
+      searchStatus === "verified" ? "verified" : "partial";
+    return {
+      discoveredUrl,
+      verificationStatus: status,
+      searchNote:
+        searchNote ||
+        "Link trong văn bản không còn hoạt động; tìm thấy trang thay thế.",
+    };
+  }
+
+  if (urlInText && !citedReachable) {
+    if (discoveredReachable && discoveredUrl) {
+      const status =
+        searchStatus === "verified" ? "verified" : "partial";
+      return {
+        discoveredUrl,
+        verificationStatus: status,
+        searchNote:
+          searchNote ||
+          "Link trong văn bản không còn hoạt động; tìm thấy trang thay thế.",
+      };
+    }
+    return {
+      discoveredUrl: discoveredUrl ?? urlInText,
+      verificationStatus: "unreachable",
+      searchNote:
+        searchNote ||
+        "Link có trong văn bản nhưng không truy cập được.",
+    };
+  }
+
+  if (discoveredUrl && !discoveredReachable) {
+    return {
+      discoveredUrl,
+      verificationStatus: "unreachable",
+      searchNote:
+        searchNote || "Link không truy cập được (kiểm tra HTTP).",
+    };
+  }
+
+  if (discoveredUrl && discoveredReachable) {
+    return { discoveredUrl, verificationStatus, searchNote };
+  }
+
+  return { discoveredUrl, verificationStatus, searchNote };
+}
+
+function applyContentScoring(
+  matchScore: number,
+  verificationStatus: VerificationStatus,
+  contentStatus: ContentStatus,
+  hasLiveUrl: boolean,
+): { matchScore: number; status: Source["status"] } {
+  let score = matchScore;
+
+  if (contentStatus === "mismatch") {
+    score = Math.min(score, 40);
+  } else if (contentStatus === "aligned" && hasLiveUrl) {
+    score = Math.max(score, 72);
+  } else if (contentStatus === "partial") {
+    score = Math.max(score, 55);
+  }
+
+  if (
+    verificationStatus === "not_found" ||
+    verificationStatus === "unreachable"
+  ) {
+    score = Math.min(score, 45);
+  } else if (
+    verificationStatus === "verified" ||
+    verificationStatus === "in_text"
+  ) {
+    score = Math.max(score, 72);
+  } else if (verificationStatus === "partial") {
+    score = Math.max(score, 60);
+  }
+
+  if (contentStatus === "mismatch") {
+    return { matchScore: score, status: "broken" };
+  }
+
+  const status: Source["status"] =
+    verificationStatus === "verified" ||
+    verificationStatus === "in_text" ||
+    verificationStatus === "partial"
+      ? "active"
+      : "broken";
+
+  return { matchScore: score, status };
+}
+
+/** Merges detection, URL discovery, HTTP probes, and content alignment. */
 export function mergeSourceVerifications(
   sources: Source[],
   verification: SourceVerificationResult,
   urlChecks: Map<string, "reachable" | "unreachable">,
   textUrls: string[],
   searchFailed = false,
+  content: SourceContentValidationResult = { contentVerifications: [] },
+  contentFailed = false,
 ): Source[] {
   if (searchFailed) {
     return sources.map((source) => ({
@@ -222,31 +478,29 @@ export function mergeSourceVerifications(
       verificationStatus: "search_failed" as VerificationStatus,
       searchNote:
         "Không thể tìm kiếm trên web do lỗi API. Vui lòng thử lại.",
+      contentStatus: "unknown" as ContentStatus,
+      contentNote: contentFailed
+        ? "Không thể kiểm tra nội dung do lỗi API."
+        : "",
     }));
   }
 
   const byName = new Map(
     verification.verifications.map((v) => [normalizeName(v.name), v]),
   );
+  const contentByName = new Map(
+    content.contentVerifications.map((c) => [normalizeName(c.name), c]),
+  );
 
   const merged: Source[] = sources.map((source) => {
     const v = byName.get(normalizeName(source.name));
     let discoveredUrl = v?.discoveredUrl ?? null;
-    const urlInText = findUrlInTextForSource(source.name, textUrls);
+    const urlInText =
+      source.citedUrl ??
+      findUrlInTextForSource(source.name, textUrls);
     let verificationStatus: VerificationStatus =
       v?.verificationStatus ?? "not_found";
     let searchNote = v?.searchNote ?? "";
-
-    if (urlInText) {
-      const reachable = urlChecks.get(urlInText) === "reachable";
-      verificationStatus = reachable ? "in_text" : "unreachable";
-      discoveredUrl = discoveredUrl ?? urlInText;
-      if (!searchNote) {
-        searchNote = reachable
-          ? "Link có trong văn bản và phản hồi hợp lệ."
-          : "Link có trong văn bản nhưng không truy cập được.";
-      }
-    }
 
     if (!discoveredUrl) {
       const grounding = applyGroundingMatch(
@@ -262,6 +516,18 @@ export function mergeSourceVerifications(
       }
     }
 
+    const urlResult = applyUrlReachability(
+      urlInText,
+      discoveredUrl,
+      verificationStatus,
+      searchNote,
+      urlChecks,
+      v?.verificationStatus,
+    );
+    discoveredUrl = urlResult.discoveredUrl;
+    verificationStatus = urlResult.verificationStatus;
+    searchNote = urlResult.searchNote;
+
     if (
       verificationStatus === "not_found" &&
       !discoveredUrl &&
@@ -270,30 +536,28 @@ export function mergeSourceVerifications(
       searchNote = searchNote || "Không tìm thấy link phù hợp trên web.";
     }
 
-    const status: Source["status"] =
-      verificationStatus === "verified" ||
-      verificationStatus === "in_text" ||
-      verificationStatus === "partial"
-        ? "active"
-        : "broken";
+    const contentItem = contentByName.get(normalizeName(source.name));
+    const contentStatus: ContentStatus = contentFailed
+      ? "unknown"
+      : (contentItem?.contentStatus ?? "unknown");
+    const contentNote = contentFailed
+      ? "Không thể kiểm tra nội dung do lỗi API."
+      : (contentItem?.contentNote ?? "");
 
-    let matchScore = source.matchScore;
-    if (
-      verificationStatus === "not_found" ||
-      verificationStatus === "unreachable"
-    ) {
-      matchScore = Math.min(matchScore, 45);
-    } else if (
-      verificationStatus === "verified" ||
-      verificationStatus === "in_text"
-    ) {
-      matchScore = Math.max(matchScore, 72);
-    } else if (verificationStatus === "partial") {
-      matchScore = Math.max(matchScore, 60);
-    }
+    const hasLiveUrl =
+      isUrlReachable(urlInText, urlChecks) ||
+      isUrlReachable(discoveredUrl, urlChecks);
+
+    const { matchScore, status } = applyContentScoring(
+      source.matchScore,
+      verificationStatus,
+      contentStatus,
+      hasLiveUrl,
+    );
 
     return {
       ...source,
+      citedUrl: source.citedUrl ?? urlInText ?? null,
       status,
       matchScore,
       color: matchScore >= 60 ? "green" : "yellow",
@@ -301,6 +565,8 @@ export function mergeSourceVerifications(
       urlInText,
       verificationStatus,
       searchNote,
+      contentStatus,
+      contentNote,
     };
   });
 
@@ -329,12 +595,15 @@ export function mergeSourceVerifications(
       reason: reachable
         ? "URL được trích xuất trực tiếp từ văn bản."
         : "URL trong văn bản không truy cập được.",
+      citedUrl: url,
       discoveredUrl: url,
       urlInText: url,
       verificationStatus: reachable ? "in_text" : "unreachable",
       searchNote: reachable
         ? "Link có trong văn bản và phản hồi hợp lệ."
         : "Link có trong văn bản nhưng không truy cập được.",
+      contentStatus: "unknown",
+      contentNote: "",
     });
   }
 
