@@ -309,10 +309,14 @@ export default function InteractiveHeader({
                           <User className="w-4 h-4 text-slate-400" />
                           <span className="text-sm">Thông tin cá nhân</span>
                         </button>
-                        <button className="w-full flex items-center gap-3 px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors text-left">
+                        <Link
+                          href="/history"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="w-full flex items-center gap-3 px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors text-left"
+                        >
                           <CheckCircle className="w-4 h-4 text-slate-400" />
                           <span className="text-sm">Lịch sử kiểm chứng</span>
-                        </button>
+                        </Link>
                       </div>
                       <div className="p-3 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
                         <button

@@ -4,6 +4,10 @@ import type { Metadata } from "next";
 import { getPublicAudit } from "@/lib/audit-public";
 import Animated from "@/app/components/Animated";
 import { step4HasDataYear, step4DataYear } from "@/lib/step4-display";
+import {
+  getSourceLinkFromRecord,
+  getVerificationLabelFromRecord,
+} from "@/lib/source-display";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -87,7 +91,7 @@ function StepDetail({ step }: { step: StepResult }) {
           {overviewSummary && (
             <div className="rounded-lg bg-blue-900/30 border border-blue-500/30 px-3 py-2 text-sm">
               <div className="flex items-center justify-between gap-3 mb-1">
-                <span className="text-blue-200 font-semibold">Reference rubric</span>
+                <span className="text-blue-200 font-semibold">Tổng quan rubric tham chiếu</span>
                 <span className="text-blue-100 font-mono text-xs">
                   {overviewGrade} · {overviewScore}/100
                 </span>
@@ -95,7 +99,9 @@ function StepDetail({ step }: { step: StepResult }) {
               <p className="text-white/70 text-xs">{overviewSummary}</p>
             </div>
           )}
-          {sources.map((s, i) => (
+          {sources.map((s, i) => {
+            const link = getSourceLinkFromRecord(s);
+            return (
             <div
               key={i}
               className={`py-2 px-3 rounded-lg text-sm ${
@@ -110,13 +116,30 @@ function StepDetail({ step }: { step: StepResult }) {
                   {(s.reliabilityGrade as string | undefined) ?? "N/A"} · {(s.reliabilityScore as number | undefined) ?? (s.matchScore as number)}%
                 </span>
               </div>
+              <p className="text-white/50 text-xs mt-1">
+                {getVerificationLabelFromRecord(s)}
+              </p>
+              {link && (
+                <a
+                  href={link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-300 underline break-all block mt-1"
+                >
+                  {link}
+                </a>
+              )}
+              {typeof s.searchNote === "string" && s.searchNote.length > 0 && (
+                <p className="text-white/40 text-xs mt-1">{s.searchNote}</p>
+              )}
               {typeof s.reason === "string" && s.reason.length > 0 && (
                 <p className="text-white/60 text-xs mt-1">
-                  Tier {(s.tier as string | undefined) ?? "?"}: {s.reason}
+                  Bậc {(s.tier as string | undefined) ?? "?"}: {s.reason}
                 </p>
               )}
             </div>
-          ))}
+          );
+          })}
         </Animated>
       );
       break;

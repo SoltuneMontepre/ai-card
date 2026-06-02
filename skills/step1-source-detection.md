@@ -52,9 +52,10 @@ Extract every distinct source-like item, including:
 For each extracted source:
 
 - **name**: the clearest concise identifier available.
-- **status**:
+- **status** (preliminary — will be updated after web verification in a later step):
   - `"active"` if the source is identifiable, plausible, and likely verifiable.
   - `"broken"` if the source is vague, unverifiable, suspicious, misattributed, or hallucination-prone.
+  - Note: this is NOT a URL check. Do not imply that links were tested.
 - **matchScore**: confidence from 0 to 100 that the source genuinely exists and is being represented responsibly.
 - **color**:
   - `"green"` if matchScore >= 60
@@ -63,7 +64,7 @@ For each extracted source:
 - **reliabilityScore**: rubric reliability score from 0 to 100 using authority, verifiability,
   freshness, cross-source consensus, technical accuracy, and reproducibility.
 - **reliabilityGrade**: final rubric grade: `"A+"`, `"A"`, `"B"`, `"C"`, or `"D"`.
-- **reason**: one concise sentence explaining why this source was chosen and how it was graded.
+- **reason**: one concise sentence in Vietnamese explaining why this source was chosen and how it was graded.
 
 Use this scoring guide:
 
@@ -72,6 +73,14 @@ Use this scoring guide:
 - 50-69: Partly identifiable but vague, incomplete, or possibly overstated.
 - 25-49: Weak source signal, generic authority, missing traceable details.
 - 0-24: Likely fabricated, impossible to identify, or source-like language with no real anchor.
+
+## Summary Requirements
+
+Write all user-facing text fields in Vietnamese:
+
+- `referenceOverview.summary`: 2-4 concise sentences summarizing overall reference quality.
+- `referenceOverview.confidence`: use `"Cao"`, `"Trung bình"`, or `"Thấp"`.
+- Each source `reason`: one concise Vietnamese sentence.
 
 ## Output Discipline
 
@@ -92,14 +101,14 @@ If no sources are found, still return a referenceOverview explaining that refere
       "tier": "S" | "A" | "B" | "C" | "D",
       "reliabilityScore": number,
       "reliabilityGrade": "A+" | "A" | "B" | "C" | "D",
-      "reason": "string"
+      "reason": "string (Vietnamese)"
     }
   ],
   "referenceOverview": {
     "reliabilityScore": number,
     "reliabilityGrade": "A+" | "A" | "B" | "C" | "D",
-    "confidence": "High" | "Medium" | "Low",
-    "summary": "string"
+    "confidence": "Cao" | "Trung bình" | "Thấp",
+    "summary": "string (Vietnamese)"
   }
 }
 

@@ -11,6 +11,7 @@ import type {
   Step4Result, Step5Result,
 } from '@/lib/gemini';
 import { step4HasDataYear, step4DataYear } from '@/lib/step4-display';
+import { getSourceLink, getVerificationLabel } from '@/lib/source-display';
 import Animated from './Animated';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -39,7 +40,20 @@ interface AIAutomatedStepperProps {
 
 // ── Shared sub-components ─────────────────────────────────────────────────────
 
-function StepLoadingSkeleton() {
+const CONFIDENCE_LABELS: Record<string, string> = {
+  High: 'Cao',
+  Medium: 'Trung bình',
+  Low: 'Thấp',
+  Cao: 'Cao',
+  'Trung bình': 'Trung bình',
+  Thấp: 'Thấp',
+};
+
+function formatConfidence(value: string): string {
+  return CONFIDENCE_LABELS[value] ?? value;
+}
+
+function StepLoadingSkeleton({ hint }: { hint?: string }) {
   return (
     <div className="pt-4 border-t border-gray-100 dark:border-slate-800 animate-in fade-in duration-300">
       <div className="flex flex-col items-center justify-center py-6 gap-4">
@@ -50,7 +64,9 @@ function StepLoadingSkeleton() {
           <p className="font-semibold text-slate-600 dark:text-slate-300 text-sm">
             Gemini AI đang phân tích...
           </p>
-          <p className="text-xs text-slate-400 mt-0.5">Có thể mất 10–30 giây</p>
+          <p className="text-xs text-slate-400 mt-0.5">
+            {hint ?? 'Có thể mất 10–30 giây'}
+          </p>
         </div>
         <div className="w-full space-y-2.5 animate-pulse">
           <div className="h-14 bg-slate-100 dark:bg-slate-800 rounded-xl" />
@@ -66,10 +82,12 @@ function StepLoadingSkeleton() {
 function StepAccordion({
   isOpen,
   isPending,
+  loadingHint,
   children,
 }: {
   isOpen: boolean;
   isPending: boolean;
+  loadingHint?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -80,7 +98,7 @@ function StepAccordion({
     >
       <div className="overflow-hidden">
         <div className="px-6 pb-6">
-          {isPending ? <StepLoadingSkeleton /> : children}
+          {isPending ? <StepLoadingSkeleton hint={loadingHint} /> : children}
         </div>
       </div>
     </div>
@@ -293,7 +311,11 @@ export default function AIAutomatedStepper({
           dotIcon={<Brain className="w-4 h-4 text-white" />}
           onToggle={() => onToggleStep(0)}
         />
-        <StepAccordion isOpen={expandedStep === 0} isPending={stepPending[0]}>
+        <StepAccordion
+          isOpen={expandedStep === 0}
+          isPending={stepPending[0]}
+          loadingHint="Đang trích xuất nguồn và tìm kiếm trên web..."
+        >
           <div className="pt-4 border-t border-gray-100 dark:border-slate-800 animate-in fade-in duration-200">
             <h4 className="font-semibold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2 text-sm">
               <Database className="w-4 h-4 text-blue-500" />
@@ -305,7 +327,7 @@ export default function AIAutomatedStepper({
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
-                        Reference rubric overview
+                        Tổng quan rubric tham chiếu
                       </p>
                       <p className="text-sm text-slate-700 mt-1">
                         {aiAnalysis.step1.referenceOverview.summary}
@@ -321,11 +343,24 @@ export default function AIAutomatedStepper({
                     </div>
                   </div>
                   <div className="inline-flex items-center rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-blue-700 border border-blue-200">
-                    Confidence: {aiAnalysis.step1.referenceOverview.confidence}
+                    Độ tin cậy: {formatConfidence(aiAnalysis.step1.referenceOverview.confidence)}
                   </div>
                 </div>
               )}
-              {aiAnalysis.step1.sources.map((source, idx) => (
+              {aiAnalysis.step1.sources.map((source, idx) => {
+                const link = getSourceLink(source);
+                const verificationLabel = getVerificationLabel(source);
+                const isVerified =
+                  source.verificationStatus === 'verified' ||
+                  source.verificationStatus === 'in_text';
+                const isSearchFailed =
+                  source.verificationStatus === 'search_failed';
+                const isWarning =
+                  source.verificationStatus === 'not_found' ||
+                  source.verificationStatus === 'unreachable' ||
+                  (!source.verificationStatus && source.status === 'broken');
+
+                return (
                 <div
                   key={idx}
                   className={`p-3.5 rounded-xl border-2 transition-all ${
@@ -340,36 +375,62 @@ export default function AIAutomatedStepper({
                   <div className="flex flex-wrap items-center gap-2 text-xs mb-2">
                     <span
                       className={`flex items-center gap-1 ${
-                        source.status === 'active'
+                        isVerified
                           ? 'text-emerald-600'
-                          : 'text-yellow-600'
+                          : isSearchFailed
+                            ? 'text-orange-600'
+                            : isWarning
+                              ? 'text-yellow-600'
+                              : 'text-slate-500'
                       }`}
                     >
-                      {source.status === 'active' ? (
+                      {isVerified ? (
                         <CheckCircle2 className="w-3.5 h-3.5" />
                       ) : (
                         <AlertTriangle className="w-3.5 h-3.5" />
                       )}
-                      {source.status === 'active' ? 'URL Active' : 'Broken Link'}
+                      {verificationLabel}
                     </span>
+                    {source.verificationStatus &&
+                      source.verificationStatus !== 'search_failed' && (
+                      <span className="rounded-full bg-blue-50 px-2 py-0.5 font-semibold text-blue-700 border border-blue-200">
+                        Google Search
+                      </span>
+                    )}
                     <span className="text-slate-600 dark:text-slate-400">
-                      Match: <strong>{source.matchScore}%</strong>
+                      Khớp: <strong>{source.matchScore}%</strong>
                     </span>
                     <span className="rounded-full bg-white/80 px-2 py-0.5 font-semibold text-slate-700 border border-black/5">
-                      Tier {source.tier}
+                      Bậc {source.tier}
                     </span>
                     <span className="rounded-full bg-white/80 px-2 py-0.5 font-semibold text-slate-700 border border-black/5">
-                      Grade {source.reliabilityGrade}
+                      Hạng {source.reliabilityGrade}
                     </span>
                     <span className="text-slate-600">
-                      Reliability: <strong>{source.reliabilityScore}/100</strong>
+                      Độ tin cậy: <strong>{source.reliabilityScore}/100</strong>
                     </span>
                   </div>
+                  {link && (
+                    <a
+                      href={link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:text-blue-800 underline break-all block mb-2"
+                    >
+                      {link}
+                    </a>
+                  )}
+                  {source.searchNote && (
+                    <p className="text-xs text-slate-500 leading-relaxed mb-1">
+                      {source.searchNote}
+                    </p>
+                  )}
                   <p className="text-xs text-slate-600 leading-relaxed">
                     {source.reason}
                   </p>
                 </div>
-              ))}
+              );
+              })}
               {aiAnalysis.step1.sources.length === 0 && (
                 <p className="text-sm text-slate-400 italic text-center py-2">
                   Không tìm thấy nguồn trích dẫn

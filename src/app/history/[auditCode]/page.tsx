@@ -10,6 +10,10 @@ import type { Metadata } from "next";
 import Animated from "@/app/components/Animated";
 import ThemeToggle from "@/app/components/ThemeToggle";
 import { step4HasDataYear, step4DataYear } from "@/lib/step4-display";
+import {
+  getSourceLinkFromRecord,
+  getVerificationLabelFromRecord,
+} from "@/lib/source-display";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -100,7 +104,7 @@ function StepCard({ step }: { step: { stepNumber: number; data: StepData } }) {
           {overviewSummary && (
             <div className="rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-sm">
               <div className="flex items-center justify-between gap-3 mb-1">
-                <span className="font-semibold text-blue-800">Reference rubric</span>
+                <span className="font-semibold text-blue-800">Tổng quan rubric tham chiếu</span>
                 <span className="font-mono text-xs font-bold text-blue-700">
                   {overviewGrade} · {overviewScore}/100
                 </span>
@@ -108,7 +112,9 @@ function StepCard({ step }: { step: { stepNumber: number; data: StepData } }) {
               <p className="text-xs text-slate-600">{overviewSummary}</p>
             </div>
           )}
-          {sources.map((s, i) => (
+          {sources.map((s, i) => {
+            const link = getSourceLinkFromRecord(s);
+            return (
             <div
               key={i}
               className={`px-3 py-2 rounded-lg text-sm ${
@@ -123,13 +129,30 @@ function StepCard({ step }: { step: { stepNumber: number; data: StepData } }) {
                   {(s.reliabilityGrade as string | undefined) ?? "N/A"} · {(s.reliabilityScore as number | undefined) ?? (s.matchScore as number)}%
                 </span>
               </div>
+              <p className="text-xs mt-1 opacity-80">
+                {getVerificationLabelFromRecord(s)}
+              </p>
+              {link && (
+                <a
+                  href={link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-700 underline break-all block mt-1"
+                >
+                  {link}
+                </a>
+              )}
+              {typeof s.searchNote === "string" && s.searchNote.length > 0 && (
+                <p className="text-xs text-slate-500 mt-1">{s.searchNote}</p>
+              )}
               {typeof s.reason === "string" && s.reason.length > 0 && (
                 <p className="text-xs text-slate-600 mt-1">
-                  Tier {(s.tier as string | undefined) ?? "?"}: {s.reason}
+                  Bậc {(s.tier as string | undefined) ?? "?"}: {s.reason}
                 </p>
               )}
             </div>
-          ))}
+          );
+          })}
           {sources.length === 0 && (
             <p className="text-sm text-slate-400 italic">Không tìm thấy trích dẫn</p>
           )}

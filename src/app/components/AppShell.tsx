@@ -96,6 +96,7 @@ export default function AppShell() {
 
   // Store the text being verified so it doesn't change mid-session
   const verifiedText = useRef("");
+  const sessionAbortRef = useRef<AbortController | null>(null);
 
   const wordCount = inputValue.trim()
     ? inputValue.trim().split(/\s+/).length
@@ -108,7 +109,9 @@ export default function AppShell() {
       const fd = new FormData();
       fd.append("file", file);
       return axios
-        .post<{ text: string }>("/api/parse-file", fd)
+        .post<{ text: string }>("/api/parse-file", fd, {
+          signal: sessionAbortRef.current?.signal,
+        })
         .then((r) => r.data.text);
     },
   });
@@ -119,8 +122,18 @@ export default function AppShell() {
   ) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     return useMutation({
-      mutationFn: ({ text, context }: { text: string; context: Partial<AIAnalysisState> }) =>
-        axios.post<T>(url, { text, context }).then((r) => r.data),
+      mutationFn: ({
+        text,
+        context,
+      }: {
+        text: string;
+        context: Partial<AIAnalysisState>;
+      }) =>
+        axios
+          .post<T>(url, { text, context }, {
+            signal: sessionAbortRef.current?.signal,
+          })
+          .then((r) => r.data),
       onSuccess: (data) =>
         setAiAnalysis((prev) => ({ ...prev, [stepKey]: data })),
     });
@@ -135,6 +148,20 @@ export default function AppShell() {
   const stepMutations = [step1, step2, step3, step4, step5];
   // Derive pending state from TanStack Query — no manual loading flags needed
   const stepPending = stepMutations.map((m) => m.isPending);
+
+  const cancelActiveRequests = () => {
+    sessionAbortRef.current?.abort();
+    sessionAbortRef.current = null;
+    parseFileMutation.reset();
+    for (const mutation of stepMutations) {
+      mutation.reset();
+    }
+  };
+
+  const beginVerificationSession = () => {
+    sessionAbortRef.current?.abort();
+    sessionAbortRef.current = new AbortController();
+  };
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
@@ -170,6 +197,7 @@ export default function AppShell() {
   };
 
   const resetAndGoHome = () => {
+    cancelActiveRequests();
     setCurrentScreen("landing");
     setCompletedSteps([false, false, false, false, false]);
     setExpandedStep(null);
@@ -202,6 +230,7 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
     }
 
     setIsLoading(true);
+    beginVerificationSession();
 
     try {
       let textToVerify = inputValue;
@@ -226,6 +255,7 @@ Theo nghiên cứu của OpenAI năm 2023, các mô hình ngôn ngữ lớn có 
   };
 
   const handleLoginSuccess = () => {
+    setIsLoginModalOpen(false);
     setShowToast(true);
     if (pendingNavigation) {
       setPendingNavigation(false);

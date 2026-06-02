@@ -1,6 +1,13 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { acquireGeminiSlot } from "./gemini-rate-limit";
+import {
+  buildSourceContext,
+  mergeSourceVerifications,
+  verifySourcesWithSearch,
+  type SourceVerificationResult,
+} from "./gemini-grounded";
 import { applySkill, loadSkillReference } from "./skills";
+import { checkUrlsInText, extractUrlsFromText } from "./source-url";
 
 // ── Key Pool ──────────────────────────────────────────────────────────────────
 
@@ -56,6 +63,14 @@ async function generate<T>(prompt: string, rateLimitKey: string): Promise<T> {
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
+export type VerificationStatus =
+  | "verified"
+  | "partial"
+  | "not_found"
+  | "unreachable"
+  | "in_text"
+  | "search_failed";
+
 export interface Source {
   name: string;
   status: "active" | "broken";
@@ -65,6 +80,10 @@ export interface Source {
   reliabilityScore: number;
   reliabilityGrade: "A+" | "A" | "B" | "C" | "D";
   reason: string;
+  discoveredUrl?: string | null;
+  urlInText?: string | null;
+  verificationStatus?: VerificationStatus;
+  searchNote?: string;
 }
 
 export interface Step1Result {
@@ -73,7 +92,7 @@ export interface Step1Result {
   referenceOverview: {
     reliabilityScore: number;
     reliabilityGrade: "A+" | "A" | "B" | "C" | "D";
-    confidence: "High" | "Medium" | "Low";
+    confidence: "High" | "Medium" | "Low" | "Cao" | "Trung bình" | "Thấp";
     summary: string;
   };
 }
@@ -189,13 +208,55 @@ export async function analyzeStep1(
   text: string,
   rateLimitKey: string,
 ): Promise<Step1Result> {
-  return generate<Step1Result>(
+  const phase1 = await generate<Step1Result>(
     applySkill("step1-source-detection.md", {
       text,
       reference_rubric: loadSkillReference("AI_ReferenceRubric.md"),
     }),
     rateLimitKey,
   );
+
+  const textUrls = extractUrlsFromText(text);
+  const urlChecks = await checkUrlsInText(textUrls);
+
+  let verification: SourceVerificationResult = {
+    verifications: [],
+    groundingUrls: [],
+  };
+  const sourceNames = phase1.sources.map((s) => s.name);
+  let searchFailed = false;
+
+  if (sourceNames.length > 0) {
+    try {
+      verification = await verifySourcesWithSearch(
+        text,
+        buildSourceContext(text, phase1.sources),
+        rateLimitKey,
+      );
+    } catch (err) {
+      searchFailed = true;
+      console.warn(
+        "[step1] Google Search verification failed, using preliminary results:",
+        err instanceof Error ? err.message : err,
+      );
+    }
+  }
+
+  const sources = mergeSourceVerifications(
+    phase1.sources,
+    verification,
+    urlChecks,
+    textUrls,
+    searchFailed,
+  );
+
+  const citationsFound = Math.max(phase1.citationsFound, sources.length);
+
+  return {
+    ...phase1,
+    citationsFound,
+    sources,
+  };
 }
 
 export async function analyzeStep2(
