@@ -16,6 +16,10 @@ import {
   getSourceLink,
   getVerificationLabel,
 } from '@/lib/source-display';
+import {
+  getExportCardHint,
+  getStep5OverallVerdict,
+} from '@/lib/hallucination-verdict';
 import Animated from './Animated';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -268,6 +272,8 @@ export default function AIAutomatedStepper({
     { name: 'Safe', value: 100 - aiAnalysis.step5.hallucinationRisk },
   ];
   const hallucinationRisk = aiAnalysis.step5.hallucinationRisk;
+  const step5Verdict = getStep5OverallVerdict(hallucinationRisk);
+  const exportCardHint = getExportCardHint(hallucinationRisk);
   const hallucinationRiskTextColor =
     hallucinationRisk < 30
       ? 'text-emerald-600'
@@ -784,16 +790,19 @@ export default function AIAutomatedStepper({
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/40 dark:to-green-950/40 border-2 border-emerald-200 dark:border-emerald-800 rounded-xl p-4 mb-3">
+            <div className={`rounded-xl p-4 mb-3 ${step5Verdict.boxClassName}`}>
               <div className="flex items-start gap-2">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
+                {step5Verdict.tone === 'success' ? (
+                  <CheckCircle2 className={`w-5 h-5 flex-shrink-0 mt-0.5 ${step5Verdict.iconClassName}`} />
+                ) : (
+                  <AlertTriangle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${step5Verdict.iconClassName}`} />
+                )}
                 <div>
-                  <p className="font-semibold text-emerald-900 dark:text-emerald-200 text-sm mb-1">
-                    Kết quả tổng thể
+                  <p className={`font-semibold text-sm mb-1 ${step5Verdict.titleClassName}`}>
+                    {step5Verdict.title}
                   </p>
-                  <p className="text-sm text-emerald-800 dark:text-emerald-300">
-                    Văn bản đạt tiêu chuẩn chân lý thực tiễn, sẵn sàng xuất thẻ
-                    chứng nhận.
+                  <p className={`text-sm ${step5Verdict.messageClassName}`}>
+                    {step5Verdict.message}
                   </p>
                 </div>
               </div>
@@ -811,19 +820,26 @@ export default function AIAutomatedStepper({
       </div>
 
       {/* ── Export CTA ── */}
-      <button
-        onClick={() => allStepsCompleted && onGoToResult()}
-        disabled={!allStepsCompleted}
-        className={`w-full flex items-center justify-center gap-3 px-8 py-4 rounded-xl mt-2 font-semibold transition-all duration-200 ${
-          allStepsCompleted
-            ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-md hover:shadow-lg animate-pulse cursor-pointer'
-            : 'bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-slate-500 cursor-not-allowed'
-        }`}
-      >
-        {!allStepsCompleted && <Lock className="w-5 h-5" />}
-        <Sparkles className="w-5 h-5" />
-        <span>XUẤT THẺ KIỂM CHỨNG</span>
-      </button>
+      <div className="mt-2">
+        <button
+          onClick={() => allStepsCompleted && onGoToResult()}
+          disabled={!allStepsCompleted}
+          className={`w-full flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-semibold transition-all duration-200 ${
+            allStepsCompleted
+              ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-md hover:shadow-lg animate-pulse cursor-pointer'
+              : 'bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-slate-500 cursor-not-allowed'
+          }`}
+        >
+          {!allStepsCompleted && <Lock className="w-5 h-5" />}
+          <Sparkles className="w-5 h-5" />
+          <span>XUẤT THẺ KIỂM CHỨNG</span>
+        </button>
+        {exportCardHint && allStepsCompleted && (
+          <p className="text-xs text-amber-700 dark:text-amber-400 text-center mt-2 leading-relaxed">
+            {exportCardHint}
+          </p>
+        )}
+      </div>
     </Animated>
   );
 }

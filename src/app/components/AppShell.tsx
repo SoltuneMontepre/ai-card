@@ -6,7 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { PieChart, Pie, Cell } from "recharts";
 import QRCode from "react-qr-code";
-import { FileText, Check, CheckCircle2, Home, Award, Shield, Download, Loader2 } from "lucide-react";
+import { FileText, Check, CheckCircle2, Home, Award, Shield, Download, Loader2, AlertTriangle } from "lucide-react";
 import AIAutomatedStepper from "./AIAutomatedStepper";
 import PremiumLandingPage from "./PremiumLandingPage";
 import InteractiveHeader from "./InteractiveHeader";
@@ -14,6 +14,10 @@ import AuthModal from "./AuthModal";
 import Toast from "./Toast";
 import Animated, { useAnimatedRef } from "./Animated";
 import { downloadElementAsPdf } from "@/lib/download-certificate-pdf";
+import {
+  buildVerificationChecklist,
+  getResultScreenHeadline,
+} from "@/lib/hallucination-verdict";
 
 const screenAnimateOptions = { duration: 280, easing: "ease-in-out" as const };
 import type { Step1Result, Step2Result, Step3Result, Step4Result, Step5Result } from "@/lib/gemini";
@@ -256,6 +260,16 @@ Theo báo cáo kỹ thuật GPT-4 của OpenAI năm 2023, GPT-4 đạt 86.4% tr�
   };
 
   const trustScore = Math.max(0, Math.min(100, 100 - aiAnalysis.step5.hallucinationRisk));
+  const resultHeadline = getResultScreenHeadline(trustScore);
+  const verificationChecklist = buildVerificationChecklist(
+    aiAnalysis,
+    step3UserChoice,
+  );
+  const checklistToneStyles = {
+    success: { bg: "bg-emerald-500", Icon: Check },
+    warning: { bg: "bg-amber-500", Icon: AlertTriangle },
+    danger: { bg: "bg-red-500", Icon: AlertTriangle },
+  };
   const chartData = [
     { name: "Trust", value: trustScore },
     { name: "Remaining", value: 100 - trustScore },
@@ -432,24 +446,32 @@ Theo báo cáo kỹ thuật GPT-4 của OpenAI năm 2023, GPT-4 đạt 86.4% tr�
                         </div>
                       </div>
                       <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mt-6 text-center">
-                        Nội dung an toàn để sử dụng học thuật
+                        {resultHeadline.headline}
                       </h2>
+                      {resultHeadline.subline && (
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 text-center max-w-md">
+                          {resultHeadline.subline}
+                        </p>
+                      )}
                     </div>
                   </div>
 
                   <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg dark:shadow-black/30 p-8">
                     <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-6">Tóm tắt kiểm chứng</h3>
                     <Animated className="space-y-4">
-                      {["Nguồn gốc hợp lệ", "Logic nhất quán", "Khớp với thực tiễn", "Dữ liệu cập nhật", "Không có ảo giác AI"].map((item, i) => (
-                        <div key={i} className="flex items-center gap-3">
-                          <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shrink-0">
-                            <Check className="w-4 h-4 text-white" />
+                      {verificationChecklist.map((item, i) => {
+                        const { bg, Icon } = checklistToneStyles[item.tone];
+                        return (
+                          <div key={i} className="flex items-center gap-3">
+                            <div className={`w-6 h-6 ${bg} rounded-full flex items-center justify-center shrink-0`}>
+                              <Icon className="w-4 h-4 text-white" />
+                            </div>
+                            <span className="text-slate-700 dark:text-slate-300">
+                              {i + 1}. {item.label}
+                            </span>
                           </div>
-                          <span className="text-slate-700 dark:text-slate-300">
-                            {i + 1}. {item}
-                          </span>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </Animated>
                     <button
                       type="button"
