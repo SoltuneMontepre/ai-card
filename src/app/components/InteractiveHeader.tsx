@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Loader2,
+  Menu,
 } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
@@ -75,6 +76,9 @@ export default function InteractiveHeader({
   const [isPhilosophyModalOpen, setIsPhilosophyModalOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   const { data: history, isLoading: historyLoading } = useQuery<AuditEntry[]>({
     queryKey: ["audit-history"],
@@ -85,24 +89,24 @@ export default function InteractiveHeader({
 
   return (
     <>
-      <header className="border-b border-slate-200/60 dark:border-slate-800/60 backdrop-blur-sm bg-white/80 dark:bg-slate-950/80 sticky top-0 z-40">
-        <div className="max-w-[1440px] mx-auto px-8 py-4">
-          <div className="flex items-center justify-between">
+      <header className="border-b border-slate-200/60 dark:border-slate-800/60 backdrop-blur-sm bg-white/80 dark:bg-slate-950/80 sticky top-0 z-40 relative">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between gap-3">
             {/* Logo */}
             <button
               onClick={onLogoClick}
-              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0 shrink"
             >
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/30">
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/30 shrink-0">
                 <Shield className="w-6 h-6 text-white" strokeWidth={2.5} />
               </div>
-              <span className="text-xl font-bold text-slate-900 dark:text-slate-100">
+              <span className="text-base sm:text-xl font-bold text-slate-900 dark:text-slate-100 truncate">
                 AI Verification Card
               </span>
             </button>
 
-            {/* Nav */}
-            <nav className="flex items-center gap-6">
+            {/* Desktop nav */}
+            <nav className="hidden lg:flex items-center gap-6">
               <button
                 onClick={() => setIsPhilosophyModalOpen(true)}
                 className="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 rounded-lg transition-all font-medium"
@@ -132,7 +136,7 @@ export default function InteractiveHeader({
                       className="fixed inset-0 z-30"
                       onClick={() => setIsHistoryOpen(false)}
                     />
-                    <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 z-40 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="absolute right-0 mt-2 w-[min(24rem,calc(100vw-2rem))] bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 z-40 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                       <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-between">
                         <h3 className="font-semibold text-slate-900 dark:text-slate-100">
                           Lịch sử kiểm chứng
@@ -234,52 +238,53 @@ export default function InteractiveHeader({
               </div>
             </nav>
 
-            <ThemeToggle />
+            <div className="flex items-center gap-2 sm:gap-3 ml-auto lg:ml-0">
+              <ThemeToggle />
 
-            {/* Auth */}
-            {!isLoggedIn ? (
-              <button
-                onClick={onLoginClick}
-                className="flex items-center gap-2 px-5 py-2 border-2 border-emerald-500 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 rounded-lg transition-all font-semibold"
-              >
-                <LogIn className="w-5 h-5" />
-                <span>Đăng nhập / Đăng ký</span>
-              </button>
-            ) : (
-              <div className="relative">
+              {/* Desktop auth */}
+              {!isLoggedIn ? (
                 <button
-                  onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center gap-3 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                  onClick={onLoginClick}
+                  className="hidden lg:flex items-center gap-2 px-5 py-2 border-2 border-emerald-500 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 rounded-lg transition-all font-semibold"
                 >
-                  {session?.user?.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={session.user.image}
-                      alt=""
-                      className="w-9 h-9 rounded-full ring-2 ring-emerald-200 object-cover"
-                    />
-                  ) : (
-                    <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center ring-2 ring-emerald-200">
-                      <User className="w-5 h-5 text-white" />
-                    </div>
-                  )}
-                  <div className="text-left">
-                    <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                      {session?.user?.name ?? "Tài khoản"}
-                    </div>
-                    <div className="text-xs text-slate-500">
-                      {session?.user?.email}
-                    </div>
-                  </div>
+                  <LogIn className="w-5 h-5" />
+                  <span>Đăng nhập / Đăng ký</span>
                 </button>
+              ) : (
+                <div className="relative hidden lg:block">
+                  <button
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    className="flex items-center gap-3 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors max-w-[240px]"
+                  >
+                    {session?.user?.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={session.user.image}
+                        alt=""
+                        className="w-9 h-9 rounded-full ring-2 ring-emerald-200 object-cover shrink-0"
+                      />
+                    ) : (
+                      <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center ring-2 ring-emerald-200 shrink-0">
+                        <User className="w-5 h-5 text-white" />
+                      </div>
+                    )}
+                    <div className="text-left min-w-0">
+                      <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
+                        {session?.user?.name ?? "Tài khoản"}
+                      </div>
+                      <div className="text-xs text-slate-500 truncate">
+                        {session?.user?.email}
+                      </div>
+                    </div>
+                  </button>
 
-                {isProfileOpen && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-30"
-                      onClick={() => setIsProfileOpen(false)}
-                    />
-                    <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 z-40 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                  {isProfileOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-30"
+                        onClick={() => setIsProfileOpen(false)}
+                      />
+                      <div className="absolute right-0 mt-2 w-[min(18rem,calc(100vw-2rem))] bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 z-40 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                       <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/50 dark:to-green-950/50">
                         <div className="flex items-center gap-3">
                           {session?.user?.image ? (
@@ -335,7 +340,87 @@ export default function InteractiveHeader({
                 )}
               </div>
             )}
+
+              {/* Mobile menu toggle */}
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                aria-label={isMobileMenuOpen ? "Đóng menu" : "Mở menu"}
+                aria-expanded={isMobileMenuOpen}
+              >
+                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
+
+          {/* Mobile menu panel */}
+          {isMobileMenuOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-30 lg:hidden"
+                onClick={closeMobileMenu}
+              />
+              <div className="lg:hidden absolute left-4 right-4 top-full mt-2 z-40 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="p-2 space-y-1">
+                  <button
+                    onClick={() => {
+                      closeMobileMenu();
+                      setIsPhilosophyModalOpen(true);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 rounded-lg font-medium text-left"
+                  >
+                    <BookOpen className="w-5 h-5 text-emerald-600" />
+                    Cơ sở triết học
+                  </button>
+                  <Link
+                    href="/history"
+                    onClick={closeMobileMenu}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 rounded-lg font-medium"
+                  >
+                    <Clock className="w-5 h-5 text-emerald-600" />
+                    Lịch sử quét
+                    {history && history.length > 0 && (
+                      <span className="ml-auto w-5 h-5 bg-emerald-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                        {history.length}
+                      </span>
+                    )}
+                  </Link>
+                  {!isLoggedIn ? (
+                    <button
+                      onClick={() => {
+                        closeMobileMenu();
+                        onLoginClick();
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 rounded-lg font-semibold text-left"
+                    >
+                      <LogIn className="w-5 h-5" />
+                      Đăng nhập / Đăng ký
+                    </button>
+                  ) : (
+                    <>
+                      <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 mt-1">
+                        <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
+                          {session?.user?.name ?? "Tài khoản"}
+                        </p>
+                        <p className="text-xs text-slate-500 truncate">{session?.user?.email}</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          closeMobileMenu();
+                          signOut({ callbackUrl: "/" });
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg font-semibold text-left"
+                      >
+                        <LogOut className="w-5 h-5" />
+                        Đăng xuất
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </header>
 

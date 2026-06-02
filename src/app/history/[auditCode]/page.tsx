@@ -214,7 +214,7 @@ function StepCard({ step }: { step: { stepNumber: number; data: StepData } }) {
     case 4:
       body = step4HasDataYear(d) ? (
         <div>
-          <div className="flex items-center gap-8 mb-3">
+          <div className="flex flex-col sm:flex-row flex-wrap items-center gap-4 sm:gap-8 mb-3">
             <div className="text-center">
               <p className="text-xs text-slate-500 mb-0.5">Năm hiện tại</p>
               <p className="text-3xl font-bold text-purple-600">2026</p>
@@ -252,9 +252,9 @@ function StepCard({ step }: { step: { stepNumber: number; data: StepData } }) {
         risk < 30 ? "bg-emerald-500" : risk < 60 ? "bg-yellow-500" : "bg-red-500";
       body = (
         <div>
-          <div className="flex items-center gap-4 mb-3">
-            <span className={`text-4xl font-bold ${riskColor}`}>{risk}%</span>
-            <div className="flex-1 bg-slate-100 rounded-full h-3">
+          <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 sm:gap-4 mb-3">
+            <span className={`text-3xl sm:text-4xl font-bold ${riskColor}`}>{risk}%</span>
+            <div className="flex-1 w-full sm:min-w-[120px] bg-slate-100 rounded-full h-3">
               <div
                 className={`${barColor} h-3 rounded-full transition-all`}
                 style={{ width: `${risk}%` }}
@@ -335,44 +335,67 @@ export default async function AuditDetailPage({
   const band = trustBand(audit.trustScore);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 overflow-x-hidden">
       {/* Header */}
-      <header className="border-b border-slate-200/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm sticky top-0 z-40">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-4">
-          <Link
-            href="/history"
-            className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-sm font-medium"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Lịch sử
-          </Link>
-          <div className="w-px h-5 bg-slate-200 dark:bg-slate-700" />
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center">
-              <Shield className="w-5 h-5 text-white" strokeWidth={2.5} />
-            </div>
-            <span className="font-bold text-slate-900 dark:text-slate-100">AI Verification Card</span>
-          </div>
-          <div className="ml-auto flex items-center gap-3">
+      <header className="border-b border-slate-200/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm sticky top-0 z-40 safe-top">
+        <div className="page-container-narrow py-3 sm:py-4 space-y-2 sm:space-y-0">
+          <div className="flex items-center justify-between gap-3 min-w-0">
+            <Link
+              href="/history"
+              className="flex items-center gap-2 min-w-0 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4 shrink-0" />
+              <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center shrink-0 sm:hidden">
+                <Shield className="w-5 h-5 text-white" strokeWidth={2.5} />
+              </div>
+              <span className="text-sm font-medium truncate">
+                <span className="sm:hidden font-mono text-slate-700 dark:text-slate-200">#{shortCode}</span>
+                <span className="hidden sm:inline">Lịch sử kiểm chứng</span>
+              </span>
+            </Link>
             <ThemeToggle />
-            <span className="font-mono text-sm text-slate-400">#{shortCode}</span>
-            {audit.verifyUrl && (
+          </div>
+          <div className="hidden sm:flex items-center justify-between gap-3 min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center shrink-0">
+                <Shield className="w-5 h-5 text-white" strokeWidth={2.5} />
+              </div>
+              <span className="font-bold text-slate-900 dark:text-slate-100 truncate">AI Verification Card</span>
+            </div>
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              <span className="font-mono text-xs sm:text-sm text-slate-400">#{shortCode}</span>
+              {audit.verifyUrl && (
+                <a
+                  href={audit.verifyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs sm:text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4 shrink-0" />
+                  <span className="hidden md:inline">Xem thẻ công khai</span>
+                  <span className="md:hidden">Thẻ công khai</span>
+                </a>
+              )}
+            </div>
+          </div>
+          {audit.verifyUrl && (
+            <div className="sm:hidden flex justify-end">
               <a
                 href={audit.verifyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
               >
-                <ExternalLink className="w-4 h-4" />
+                <ExternalLink className="w-3.5 h-3.5 shrink-0" />
                 Xem thẻ công khai
               </a>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto px-6 py-10">
-        <div className="grid grid-cols-3 gap-8">
+      <div className="page-container-narrow py-8 sm:py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Left: summary panel */}
           <div className="space-y-5">
             {/* Trust score card */}
@@ -387,7 +410,7 @@ export default async function AuditDetailPage({
                 </span>
               </div>
               <div
-                className={`text-5xl font-bold mb-1 ${
+                className={`text-4xl sm:text-5xl font-bold mb-1 ${
                   (audit.trustScore ?? 0) >= 70
                     ? "text-emerald-600"
                     : (audit.trustScore ?? 0) >= 40
@@ -467,7 +490,7 @@ export default async function AuditDetailPage({
           </div>
 
           {/* Right: step detail cards */}
-          <div className="col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-4 min-w-0">
             <h2 className="text-lg font-bold text-slate-800">
               Chi tiết từng bước kiểm chứng
             </h2>

@@ -150,7 +150,7 @@ function StepHeader({
   return (
     <button
       onClick={disabled ? undefined : onToggle}
-      className={`w-full text-left p-4 flex items-center justify-between transition-colors ${
+      className={`w-full text-left p-4 flex flex-wrap items-center justify-between gap-2 transition-colors ${
         disabled ? 'cursor-not-allowed opacity-75' : 'hover:bg-slate-50/60 dark:hover:bg-slate-800/60'
       }`}
       aria-disabled={disabled}
@@ -217,7 +217,7 @@ function StepActions({
   approveDisabled?: boolean;
 }) {
   return (
-    <div className="flex gap-3 mt-4 items-center">
+    <div className="flex flex-col sm:flex-row gap-3 mt-4 items-stretch sm:items-center">
       {stepIndex > 0 && (
         <button
           onClick={onBack}
@@ -302,7 +302,7 @@ export default function AIAutomatedStepper({
             : 'border-gray-200';
 
   return (
-    <Animated className="col-span-3 space-y-3">
+    <Animated className="lg:col-span-3 space-y-3 min-w-0">
 
       {/* ── Step 1 ── */}
       <div className={`bg-white dark:bg-slate-900 border-l-4 rounded-xl shadow-sm transition-all duration-200 ${borderFor(0)}`}>
@@ -684,7 +684,7 @@ export default function AIAutomatedStepper({
           <div className="pt-4 border-t border-gray-100 dark:border-slate-800 animate-in fade-in duration-200">
             {step4HasDataYear(aiAnalysis.step4) ? (
               <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/40 dark:to-pink-950/40 p-5 rounded-xl border border-purple-200 dark:border-purple-800 mb-3">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-4 sm:justify-between mb-2">
                   <div className="text-center flex-1">
                     <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Năm hiện tại</p>
                     <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">2026</p>
@@ -749,7 +749,7 @@ export default function AIAutomatedStepper({
         <StepAccordion isOpen={expandedStep === 4} isPending={stepPending[4]}>
           <div className="pt-4 border-t border-gray-100 dark:border-slate-800 animate-in fade-in duration-200">
             <div className="flex flex-col items-center mb-4">
-              <div className="relative w-[200px] h-[200px]">
+              <div className="relative w-full max-w-[200px] aspect-square mx-auto">
                 <PieChart width={200} height={200}>
                   <Pie
                     data={hallucinationData}

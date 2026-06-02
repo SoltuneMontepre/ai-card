@@ -199,7 +199,7 @@ function StepDetail({ step }: { step: StepResult }) {
       const hasYear = step4HasDataYear(d);
       content = hasYear ? (
         <div>
-          <div className="flex items-center gap-6 mb-2">
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 mb-2">
             <div className="text-center">
               <p className="text-white/40 text-xs">Năm hiện tại</p>
               <p className="text-2xl font-bold text-purple-400">2026</p>
@@ -296,24 +296,25 @@ export default async function VerifyPage({
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800">
       {/* Header bar */}
       <div className="border-b border-white/10 bg-white/5 backdrop-blur-sm">
-        <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center">
+        <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center shrink-0">
               <Shield className="w-5 h-5 text-white" strokeWidth={2.5} />
             </div>
-            <span className="font-bold text-white text-sm">AI Verification Card</span>
+            <span className="font-bold text-white text-sm truncate">AI Verification Card</span>
           </div>
           <a
             href={process.env.NEXT_PUBLIC_SITE_URL ?? "/"}
-            className="flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 text-sm font-medium transition-colors"
+            className="flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 text-xs sm:text-sm font-medium transition-colors shrink-0"
           >
-            Kiểm chứng văn bản của bạn
+            <span className="hidden sm:inline">Kiểm chứng văn bản của bạn</span>
+            <span className="sm:hidden">Kiểm chứng</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-6 py-10 space-y-6">
+      <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-6">
         {/* Certificate card */}
         <div className="relative bg-gradient-to-br from-[#0F172A] to-[#1E293B] rounded-2xl shadow-2xl overflow-hidden border-2 border-emerald-500/60">
           {/* Background pattern */}
@@ -360,7 +361,7 @@ export default async function VerifyPage({
 
             {/* Quick step overview */}
             {audit.stepResults.length > 0 && (
-              <Animated className="flex gap-3 mb-6">
+              <Animated className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-6">
                 {audit.stepResults.map((step) => (
                   <div
                     key={step.stepNumber}
@@ -385,8 +386,8 @@ export default async function VerifyPage({
             <div className="w-full h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent mb-5" />
 
             {/* Footer row */}
-            <div className="flex items-end justify-between w-full text-sm">
-              <div className="text-left">
+            <div className="flex flex-col sm:flex-row items-center sm:items-end justify-center sm:justify-between w-full gap-4 text-sm">
+              <div className="text-center sm:text-left">
                 <p className="text-white/40 text-xs mb-0.5">Audit ID</p>
                 <p className="text-white font-mono font-bold">#{shortCode}</p>
               </div>
@@ -394,9 +395,9 @@ export default async function VerifyPage({
                 <p className="text-white/40 text-xs mb-0.5">Ngày</p>
                 <p className="text-white font-semibold">{date}</p>
               </div>
-              <div className="text-right">
+              <div className="text-center sm:text-right">
                 <p className="text-white/40 text-xs mb-0.5">Xác thực</p>
-                <div className="flex items-center gap-1 text-emerald-400 text-xs font-semibold justify-end">
+                <div className="flex items-center gap-1 text-emerald-400 text-xs font-semibold justify-center sm:justify-end">
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   Verified
                 </div>

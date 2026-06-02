@@ -62,7 +62,7 @@ export default function PremiumLandingPage({
           onLoginClick={onLoginClick}
         />
 
-        <section className="max-w-360 mx-auto px-8 py-20">
+        <section className="page-container py-12 sm:py-16 lg:py-20">
           <div className="max-w-5xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-emerald-50 to-blue-50 dark:from-emerald-950/50 dark:to-blue-950/50 border border-emerald-200 dark:border-emerald-800 rounded-full mb-8 shadow-sm">
               <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -71,14 +71,14 @@ export default function PremiumLandingPage({
               </span>
             </div>
 
-            <h1 className="text-6xl font-bold text-slate-900 dark:text-slate-100 mb-6 leading-tight">
+            <h1 className="responsive-hero-title text-slate-900 dark:text-slate-100 mb-6">
               Đừng dùng AI mù quáng.{" "}
               <span className="bg-linear-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
                 Hãy kiểm chứng học thuật.
               </span>
             </h1>
 
-            <p className="text-xl text-slate-600 dark:text-slate-400 mb-16 leading-relaxed max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg lg:text-xl text-slate-600 dark:text-slate-400 mb-10 sm:mb-16 leading-relaxed max-w-3xl mx-auto">
               Công cụ hỗ trợ sinh viên đánh giá độ tin cậy của văn bản do AI tạo
               ra thông qua 5 bước đối chiếu thực tiễn nghiêm ngặt.
             </p>
@@ -87,10 +87,10 @@ export default function PremiumLandingPage({
               <div className="absolute -inset-4 bg-linear-to-r from-emerald-500/20 to-blue-500/20 rounded-3xl blur-2xl" />
               <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-black/30 overflow-hidden">
                 {/* Tabs */}
-                <div className="flex border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+                <div className="flex flex-col sm:flex-row border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
                   <button
                     onClick={() => setSelectedTab("text")}
-                    className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 font-semibold transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 sm:px-6 py-3 sm:py-4 font-semibold text-sm sm:text-base transition-all ${
                       selectedTab === "text"
                         ? "bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 border-b-2 border-emerald-600"
                         : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
@@ -101,7 +101,7 @@ export default function PremiumLandingPage({
                   </button>
                   <button
                     onClick={() => setSelectedTab("file")}
-                    className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 font-semibold transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 sm:px-6 py-3 sm:py-4 font-semibold text-sm sm:text-base transition-all ${
                       selectedTab === "file"
                         ? "bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 border-b-2 border-emerald-600"
                         : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
@@ -112,7 +112,7 @@ export default function PremiumLandingPage({
                   </button>
                 </div>
 
-                <Animated className="p-8">
+                <Animated className="p-4 sm:p-6 lg:p-8">
                   {selectedTab === "text" ? (
                     <>
                       <div className="relative">
@@ -218,9 +218,9 @@ export default function PremiumLandingPage({
         </section>
 
         {/* Feature cards */}
-        <section className="max-w-360 mx-auto px-8 pb-20">
-          <Animated className="max-w-6xl mx-auto grid grid-cols-3 gap-8">
-            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl p-8 hover:border-emerald-400 dark:hover:border-emerald-600 hover:shadow-lg hover:shadow-emerald-100 dark:hover:shadow-emerald-900/20 transition-all group">
+        <section className="page-container pb-12 sm:pb-16 lg:pb-20">
+          <Animated className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl p-6 sm:p-8 hover:border-emerald-400 dark:hover:border-emerald-600 hover:shadow-lg hover:shadow-emerald-100 dark:hover:shadow-emerald-900/20 transition-all group">
               <div className="w-14 h-14 bg-linear-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
                 <FileText className="w-7 h-7 text-emerald-600" />
               </div>
@@ -231,7 +231,7 @@ export default function PremiumLandingPage({
                 Phân tách lập luận và số liệu để fact-check.
               </p>
             </div>
-            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl p-8 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-lg hover:shadow-blue-100 dark:hover:shadow-blue-900/20 transition-all group">
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl p-6 sm:p-8 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-lg hover:shadow-blue-100 dark:hover:shadow-blue-900/20 transition-all group">
               <div className="w-14 h-14 bg-linear-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
                 <CheckSquare className="w-7 h-7 text-blue-600" />
               </div>
@@ -242,7 +242,7 @@ export default function PremiumLandingPage({
                 Kiểm tra nguồn gốc, logic, thực tiễn, ảo giác AI.
               </p>
             </div>
-            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl p-8 hover:border-emerald-400 dark:hover:border-emerald-600 hover:shadow-lg hover:shadow-emerald-100 dark:hover:shadow-emerald-900/20 transition-all group">
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl p-6 sm:p-8 hover:border-emerald-400 dark:hover:border-emerald-600 hover:shadow-lg hover:shadow-emerald-100 dark:hover:shadow-emerald-900/20 transition-all group">
               <div className="w-14 h-14 bg-linear-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
                 <CreditCard className="w-7 h-7 text-emerald-600" />
               </div>
@@ -256,7 +256,7 @@ export default function PremiumLandingPage({
           </Animated>
         </section>
 
-        <footer className="max-w-360 mx-auto px-8 pb-12">
+        <footer className="page-container pb-8 sm:pb-12">
           <div className="text-center text-sm text-slate-500 dark:text-slate-400">
             <p>
               Đồ án Thực hành sáng tạo môn MLN111 • Mã đề tài: SPST086 • Phiên
